@@ -14,6 +14,26 @@ async function longPress(page: Page, index = 0) {
   await page.mouse.up();
 }
 
+/** Wait until the app's async IndexedDB save contains `text`, so a reload can't race it. */
+async function saved(page: Page, text: string) {
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          new Promise<string>((resolve) => {
+            const open = indexedDB.open('keyval-store');
+            open.onsuccess = () => {
+              const req = open.result.transaction('keyval').objectStore('keyval').get('whipp-clone');
+              req.onsuccess = () => resolve(String(req.result ?? ''));
+              req.onerror = () => resolve('');
+            };
+            open.onerror = () => resolve('');
+          }),
+      ),
+    )
+    .toContain(text);
+}
+
 async function onboard(page: Page) {
   await page.goto('/');
   await page.getByRole('button', { name: /Get started/ }).click();
@@ -68,6 +88,7 @@ test('grocery list ticks persist and custom items can be added', async ({ page }
   await page.getByPlaceholder(/Paper towels|Kitchen roll/).fill('Paper towels');
   await page.getByRole('button', { name: 'Add item' }).click();
   await expect(page.getByText('Paper towels', { exact: true })).toBeVisible();
+  await saved(page, 'Paper towels');
   await page.reload();
   await expect(page.getByText(/^1 of \d+ in the cart$/)).toBeVisible();
   await expect(page.getByText('Paper towels', { exact: true })).toBeVisible();
