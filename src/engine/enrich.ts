@@ -86,5 +86,7 @@ export function enrich(src: RecipeSource): Recipe {
     mainProtein: mainProteinOf(src),
     ingredientIds: src.ingredients.map((l) => l[0]),
     image: photoUrl(src.photo),
+    // Lunch-worthy: quick and on the lighter side (salads, soups, bowls, wraps, stir-fries).
+    lunch: (src.time <= 30 && nutrition.kcal <= 720) || (tags.has('healthy') && src.time <= 35 && nutrition.kcal <= 700),
   };
 }

@@ -23,7 +23,7 @@ export const TAG_LABELS: Record<Priority | ExtraTag, string> = {
   comfort: 'Comfort',
   plant_forward: 'Plant-forward',
   batch_cook: 'Batch cook',
-  budget: 'Budget',
+  budget: 'Budget pick',
   one_pan: 'One-pan',
   veggie: 'Veggie',
   vegan: 'Vegan',
@@ -33,7 +33,9 @@ export const TAG_LABELS: Record<Priority | ExtraTag, string> = {
 /** Chip style per tag — mirrors Whipp: lime for Healthy, soft green for most, outline for Quick prep. */
 export const TAG_STYLE: Partial<Record<Priority | ExtraTag, 'lime' | 'soft' | 'outline'>> = {
   healthy: 'lime',
+  budget: 'lime',
   quick: 'outline',
+  comfort: 'outline',
 };
 
 export const DIETS: { id: Diet; label: string; emoji: string; hint: string }[] = [

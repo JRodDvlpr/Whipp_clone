@@ -1,145 +1,155 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { RECIPES } from '../data/recipes';
-import { PRIORITIES } from '../data/taxonomy';
+import { TAG_LABELS } from '../data/taxonomy';
 import { perServing } from '../engine/cost';
-import { isEligible } from '../engine/planner';
 import { money } from '../engine/pricing';
 import { usePriceCtx } from '../state/hooks';
 import { useApp } from '../state/store';
-import type { Recipe } from '../types';
+import type { Country, Recipe } from '../types';
 import { Icon } from '../ui/Icon';
-import { MealImage, Toggle } from '../ui/primitives';
+import { MealImage } from '../ui/primitives';
+import { PageHead, RecipeRow } from '../ui/RecipeRow';
 
-/** `cheap` is the cost-per-serving cut-off for the cheapest third of the library. */
-type Filter = { id: string; label: string; test: (r: Recipe, pp: number, cheap: number) => boolean };
+/** "Under $3" — a per-person price that reads as cheap in each currency. */
+const CHEAP: Record<Country, number> = { US: 3, UK: 2.5, CA: 4, AU: 4.5 };
 
-const FILTERS: Filter[] = [
-  { id: 'all', label: 'All', test: () => true },
-  ...PRIORITIES.map((p) => ({ id: p.id, label: p.label, test: (r: Recipe) => r.tags.includes(p.id) })),
-  { id: 'vegan', label: 'Vegan', test: (r) => r.diets.includes('vegan') },
-  { id: 'veggie', label: 'Veggie', test: (r) => r.diets.includes('vegetarian') },
-  { id: 'fish', label: 'Fish & seafood', test: (r) => r.mainProtein === 'fish' || r.mainProtein === 'shellfish' },
-  { id: 'budget', label: 'Budget', test: (_r, pp, cheap) => pp <= cheap },
+type Filter = { id: string; label: string; test: (r: Recipe, pp: number) => boolean };
+
+const filtersFor = (country: Country): Filter[] => [
+  { id: 'family', label: 'Family friendly', test: (r) => r.tags.includes('family') || !!r.kid },
+  { id: 'quick', label: 'Quick meal', test: (r) => r.time <= 30 },
+  { id: 'light', label: 'Light', test: (r) => r.nutrition.kcal <= 550 },
+  { id: 'protein', label: 'High protein', test: (r) => r.tags.includes('high_protein') },
+  { id: 'veg', label: 'Veggie & vegan', test: (r) => r.diets.includes('vegetarian') },
+  { id: 'onepan', label: 'One pan', test: (r) => !!r.extra?.includes('one_pan') },
+  { id: 'cheap', label: `Under ${money(CHEAP[country], country, CHEAP[country] % 1 === 0)}`, test: (_r, pp) => pp <= CHEAP[country] },
 ];
 
-export function RecipeCard({ recipe }: { recipe: Recipe }) {
-  const ctx = usePriceCtx();
-  const favorites = useApp((s) => s.favorites);
-  const toggleFavorite = useApp((s) => s.toggleFavorite);
-  const fav = favorites.includes(recipe.id);
-  return (
-    <Link to={`/recipe/${recipe.id}`} className="rcard">
-      <div className="img">
-        <MealImage recipe={recipe} />
-        <button
-          className="fav"
-          onClick={(e) => {
-            e.preventDefault();
-            toggleFavorite(recipe.id);
-          }}
-          aria-label={fav ? 'Remove from favorites' : 'Save to favorites'}
-          aria-pressed={fav}
-          style={{ color: fav ? '#e0475b' : 'var(--forest)' }}
-        >
-          <Icon name="heart" size={17} fill={fav} />
-        </button>
-      </div>
-      <div className="b">
-        <h3>{recipe.title}</h3>
-        <div className="m">
-          <span>
-            {recipe.time}m · {recipe.nutrition.kcal} kcal
-          </span>
-          <b>{money(perServing(recipe, ctx), ctx.country)}</b>
-        </div>
-      </div>
-    </Link>
-  );
-}
+/** Recipe cuisines grouped into the cards shown under "Explore by cuisine". */
+const CUISINES: { id: string; label: string; match: string[] }[] = [
+  { id: 'italian', label: 'Italian', match: ['Italian', 'Italian-American'] },
+  { id: 'american', label: 'American', match: ['American', 'Canadian', 'Modern'] },
+  { id: 'mediterranean', label: 'Mediterranean', match: ['Mediterranean', 'Greek', 'Spanish', 'Portuguese', 'Turkish', 'Bulgarian'] },
+  { id: 'mexican', label: 'Mexican & Latin', match: ['Mexican', 'Latin American', 'Costa Rican', 'Venezuelan', 'Argentinian', 'Cuban'] },
+  { id: 'indian', label: 'Indian', match: ['Indian', 'Sri Lankan'] },
+  { id: 'thai', label: 'Thai', match: ['Thai'] },
+  { id: 'chinese', label: 'Chinese', match: ['Chinese'] },
+  { id: 'japanese', label: 'Japanese & Korean', match: ['Japanese', 'Korean'] },
+  { id: 'sea', label: 'Southeast Asian', match: ['Vietnamese', 'Malaysian', 'Filipino', 'Cambodian', 'Asian'] },
+  {
+    id: 'mideast',
+    label: 'Middle Eastern & African',
+    match: ['Middle Eastern', 'Moroccan', 'North African', 'Egyptian', 'Tunisian', 'Algerian', 'Syrian', 'Kenyan', 'Afghan'],
+  },
+  { id: 'caribbean', label: 'Caribbean', match: ['Caribbean'] },
+  {
+    id: 'european',
+    label: 'British & European',
+    match: ['British', 'Irish', 'French', 'Russian', 'Polish', 'Ukrainian', 'Danish', 'Dutch', 'Belgian', 'Norwegian', 'Eastern European', 'Uzbek'],
+  },
+];
+
+/** Stable pseudo-random order so "All meals" isn't alphabetical but doesn't jump around. */
+const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 
 export function Discover() {
-  const profile = useApp((s) => s.profile);
+  const priorities = useApp((s) => s.profile.priorities);
   const ctx = usePriceCtx();
   const [q, setQ] = useState('');
-  const [filter, setFilter] = useState('all');
-  const [mine, setMine] = useState(true);
+  const [filter, setFilter] = useState<string | null>(null);
+  const [cuisine, setCuisine] = useState<string | null>(null);
+  const filters = useMemo(() => filtersFor(ctx.country), [ctx.country]);
   const pp = useMemo(() => Object.fromEntries(RECIPES.map((r) => [r.id, perServing(r, ctx)])), [ctx]);
-  const cheap = useMemo(() => Object.values(pp).sort((a, b) => a - b)[Math.floor(RECIPES.length / 3)], [pp]);
 
-  const pool = useMemo(() => RECIPES.filter((r) => !mine || isEligible(r, { ...profile, kidFriendly: false })), [mine, profile]);
+  // Your priorities first, otherwise a stable shuffle.
+  const ordered = useMemo(() => {
+    const match = (r: Recipe) => priorities.filter((p) => r.tags.includes(p)).length;
+    return [...RECIPES].sort((a, b) => match(b) - match(a) || hash(a.id) - hash(b.id));
+  }, [priorities]);
+
   const results = useMemo(() => {
     const s = q.trim().toLowerCase();
-    const f = FILTERS.find((x) => x.id === filter)!;
-    return pool.filter(
-      (r) =>
-        f.test(r, pp[r.id], cheap) &&
-        (!s || r.title.toLowerCase().includes(s) || r.cuisine.toLowerCase().includes(s) || r.description.toLowerCase().includes(s)),
-    );
-  }, [pool, q, filter, pp, cheap]);
+    const f = filters.find((x) => x.id === filter);
+    const c = CUISINES.find((x) => x.id === cuisine);
+    return ordered.filter((r) => {
+      if (f && !f.test(r, pp[r.id])) return false;
+      if (c && !c.match.includes(r.cuisine)) return false;
+      if (!s) return true;
+      const tags = [...r.tags, ...(r.extra ?? [])].map((t) => TAG_LABELS[t].toLowerCase());
+      return (
+        r.title.toLowerCase().includes(s) ||
+        r.description.toLowerCase().includes(s) ||
+        r.cuisine.toLowerCase().includes(s) ||
+        tags.some((t) => t.includes(s))
+      );
+    });
+  }, [ordered, q, filter, cuisine, filters, pp]);
 
-  const browsing = !q && filter === 'all';
-  const collections: { title: string; items: Recipe[] }[] = [
-    { title: 'Quick wins', items: pool.filter((r) => r.time <= 20) },
-    { title: 'Budget heroes', items: [...pool].sort((a, b) => pp[a.id] - pp[b.id]).slice(0, 10) },
-    { title: 'High protein', items: pool.filter((r) => r.nutrition.protein >= 45) },
-    { title: 'Comfort classics', items: pool.filter((r) => r.tags.includes('comfort')) },
-    { title: 'Plant-forward', items: pool.filter((r) => r.diets.includes('vegetarian')) },
-  ].filter((c) => c.items.length >= 3);
+  const cuisineCards = useMemo(
+    () =>
+      CUISINES.map((c) => ({
+        ...c,
+        cover: RECIPES.find((r) => c.match.includes(r.cuisine) && r.image) ?? RECIPES.find((r) => c.match.includes(r.cuisine)),
+      })).filter((c) => c.cover),
+    [],
+  );
+  const browsing = !q && !filter && !cuisine;
+  const activeCuisine = CUISINES.find((c) => c.id === cuisine);
 
   return (
-    <div className="screen wide">
-      <h1 className="title-xl" style={{ marginTop: 8 }}>
-        Discover <span className="italic">dinners</span>
-      </h1>
-      <p className="muted" style={{ margin: '6px 0 16px' }}>
-        {RECIPES.length} recipes, all priced at your store.
-      </p>
-      <label className="search">
-        <Icon name="search" size={19} />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search recipes, cuisines…" aria-label="Search recipes" />
-        {q && (
-          <button onClick={() => setQ('')} aria-label="Clear search">
-            <Icon name="close" size={18} />
+    <div className="screen flush-top">
+      <PageHead title="Discover">
+        <label className="search" style={{ marginTop: 14 }}>
+          <Icon name="search" size={20} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search meals, cuisines, tags" aria-label="Search meals" />
+          {q && (
+            <button onClick={() => setQ('')} aria-label="Clear search">
+              <Icon name="close" size={18} />
+            </button>
+          )}
+        </label>
+        <div className="hscroll" style={{ marginTop: 14, paddingBottom: 4 }}>
+          {filters.map((f) => (
+            <button
+              key={f.id}
+              className={`filter-pill ${filter === f.id ? 'on' : ''}`}
+              onClick={() => setFilter(filter === f.id ? null : f.id)}
+              aria-pressed={filter === f.id}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </PageHead>
+
+      {browsing && (
+        <>
+          <div className="eyebrow section-title">Explore by cuisine</div>
+          <div className="hscroll">
+            {cuisineCards.map((c) => (
+              <button key={c.id} className="cuisine-card" onClick={() => setCuisine(c.id)}>
+                <MealImage recipe={c.cover!} />
+                <span>{c.label}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      <div className="row between section-title">
+        <span className="eyebrow">{browsing ? 'All meals' : `${results.length} ${results.length === 1 ? 'meal' : 'meals'}`}</span>
+        {activeCuisine && (
+          <button className="filter-pill on sm" onClick={() => setCuisine(null)} aria-label={`Clear ${activeCuisine.label}`}>
+            {activeCuisine.label} <Icon name="close" size={14} stroke={2.6} />
           </button>
         )}
-      </label>
-      <div className="hscroll" style={{ marginTop: 14 }}>
-        {FILTERS.map((f) => (
-          <button key={f.id} className={`pill-filter ${filter === f.id ? 'on' : ''}`} onClick={() => setFilter(f.id)}>
-            {f.label}
-          </button>
-        ))}
       </div>
-      <div className="row between" style={{ marginTop: 14 }}>
-        <span style={{ fontWeight: 600 }}>Matches my diet & kitchen</span>
-        <Toggle on={mine} onChange={setMine} label="Only show recipes that match my preferences" />
-      </div>
-
-      {browsing
-        ? collections.map((c) => (
-            <section key={c.title} className="collection">
-              <h2 className="title-md" style={{ marginBottom: 12 }}>
-                {c.title}
-              </h2>
-              <div className="hscroll">
-                {c.items.slice(0, 10).map((r) => (
-                  <RecipeCard key={r.id} recipe={r} />
-                ))}
-              </div>
-            </section>
-          ))
-        : null}
-
-      <h2 className="title-md" style={{ margin: '28px 0 12px' }}>
-        {browsing ? 'All recipes' : `${results.length} ${results.length === 1 ? 'recipe' : 'recipes'}`}
-      </h2>
-      <div className="grid">
+      <div className="meal-list">
         {results.map((r) => (
-          <RecipeCard key={r.id} recipe={r} />
+          <RecipeRow key={r.id} recipe={r} />
         ))}
       </div>
-      {!results.length && <p className="muted">Nothing matches — try another filter.</p>}
+      {!results.length && <p className="muted">Nothing matches — try another search or filter.</p>}
     </div>
   );
 }
@@ -148,31 +158,21 @@ export function Favorites() {
   const favorites = useApp((s) => s.favorites);
   const recipes = favorites.map((id) => RECIPES.find((r) => r.id === id)).filter(Boolean) as Recipe[];
   return (
-    <div className="screen wide">
-      <h1 className="title-xl" style={{ marginTop: 8 }}>
-        Your <span className="italic">favorites</span>
-      </h1>
-      <p className="muted" style={{ margin: '6px 0 20px' }}>
-        {recipes.length ? `${recipes.length} saved ${recipes.length === 1 ? 'recipe' : 'recipes'}` : 'Nothing saved yet.'}
-      </p>
+    <div className="screen flush-top">
+      <PageHead title="My favorites" />
       {recipes.length ? (
-        <div className="grid">
+        <div className="meal-list" style={{ marginTop: 20 }}>
           {recipes.map((r) => (
-            <RecipeCard key={r.id} recipe={r} />
+            <RecipeRow key={r.id} recipe={r} />
           ))}
         </div>
       ) : (
-        <div className="card pad" style={{ textAlign: 'center', padding: 30 }}>
-          <div style={{ fontSize: 44 }}>💚</div>
-          <h2 className="title-md" style={{ marginTop: 8 }}>
-            Tap ♥ on any recipe
-          </h2>
-          <p className="muted" style={{ margin: '8px 0 18px' }}>
-            Favorites get a little boost when we plan your week.
-          </p>
-          <Link to="/discover" className="btn btn-lime">
-            Browse recipes
-          </Link>
+        <div className="empty-state">
+          <div className="empty-icon">
+            <Icon name="heart" size={30} stroke={1.8} />
+          </div>
+          <h2>No favorites yet</h2>
+          <p>Tap the heart on any recipe and it will wait for you here.</p>
         </div>
       )}
     </div>

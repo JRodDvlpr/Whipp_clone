@@ -9,7 +9,8 @@ import { money } from '../engine/pricing';
 import { formatLineQty } from '../engine/units';
 import { useIsWide, usePlanCtx } from '../state/hooks';
 import { currentWeek, useApp } from '../state/store';
-import type { Recipe as RecipeT, RecipeLine } from '../types';
+import { isMeal, slotOf } from '../engine/slots';
+import type { Recipe as RecipeT, RecipeLine, Slot } from '../types';
 import { Icon } from '../ui/Icon';
 import { MealImage, Sheet, Tags, recipeTags, useToast } from '../ui/primitives';
 import { SwapSheet } from './Plan';
@@ -22,7 +23,10 @@ export function Recipe() {
   const weekParam = params.get('week');
   const dayParam = params.get('day');
   const plan = useApp((s) => (weekParam ? s.plans[weekParam] : undefined));
-  const meal = plan && dayParam !== null ? plan.meals.find((m) => m.day === Number(dayParam) && m.recipeId === id) : undefined;
+  const slotParam: Slot = params.get('slot') === 'lunch' ? 'lunch' : 'dinner';
+  const meal =
+    plan && dayParam !== null ? plan.meals.find((m) => isMeal(m, { day: Number(dayParam), slot: slotParam }) && m.recipeId === id) : undefined;
+  const mealKey = meal ? { day: meal.day, slot: slotOf(meal) } : undefined;
   const profile = useApp((s) => s.profile);
   const favorites = useApp((s) => s.favorites);
   const toggleFavorite = useApp((s) => s.toggleFavorite);
@@ -54,7 +58,7 @@ export function Recipe() {
   const removed = meal?.removed ?? [];
   const total = recipeCost(recipe, servings, ctx, removed);
   const fav = favorites.includes(recipe.id);
-  const changeServings = (n: number) => (meal ? setServings(plan!.week, meal.day, n) : setLocalServings(Math.max(1, Math.min(12, n))));
+  const changeServings = (n: number) => (mealKey ? setServings(plan!.week, mealKey, n) : setLocalServings(Math.max(1, Math.min(12, n))));
   const back = () => (window.history.length > 1 ? nav(-1) : nav('/plan'));
   const cookUrl = `/cook/${recipe.id}?servings=${servings}`;
 
@@ -208,12 +212,12 @@ export function Recipe() {
       {swap && plan && meal && (
         <SwapSheet
           plan={plan}
-          day={meal.day}
+          mealKey={mealKey!}
           mode="swap"
           onClose={() => {
             setSwap(false);
             // Leave the recipe only if the meal on this night actually changed.
-            const now = useApp.getState().plans[plan.week]?.meals.find((m) => m.day === meal.day);
+            const now = useApp.getState().plans[plan.week]?.meals.find((m) => isMeal(m, mealKey!));
             if (now?.recipeId !== recipe.id) nav(`/plan?week=${plan.week}`, { replace: true });
           }}
         />
@@ -231,7 +235,7 @@ export function Recipe() {
               <button
                 className="btn btn-white btn-block"
                 onClick={() => {
-                  toggleRemoved(plan!.week, meal.day, ingSheet[0]);
+                  toggleRemoved(plan!.week, mealKey!, ingSheet[0]);
                   setIngSheet(null);
                 }}
               >
@@ -242,7 +246,7 @@ export function Recipe() {
                   className="btn btn-forest btn-block"
                   onClick={() => {
                     dislike(ingSheet[0]);
-                    if (!removed.includes(ingSheet[0])) toggleRemoved(plan!.week, meal.day, ingSheet[0]);
+                    if (!removed.includes(ingSheet[0])) toggleRemoved(plan!.week, mealKey!, ingSheet[0]);
                     setIngSheet(null);
                     toast.show('Got it — gone for good');
                   }}
@@ -362,12 +366,14 @@ function Method({ recipe, onCook }: { recipe: RecipeT; onCook: () => void }) {
 function AddToWeekSheet({ recipe, onClose, onDone }: { recipe: RecipeT; onClose: () => void; onDone: (m: string) => void }) {
   const [week, setWeek] = useState(currentWeek());
   const plan = useApp((s) => s.plans[week]);
+  const lunches = useApp((s) => s.profile.meals.includes('lunch'));
+  const [slot, setSlot] = useState<Slot>('dinner');
   const setMeal = useApp((s) => s.setMeal);
   const weeks = useMemo(() => [0, 1, 2].map((n) => addWeeks(currentWeek(), n)), []);
   return (
     <Sheet open onClose={onClose} label="Add to week">
       <div className="row between">
-        <h2 className="title-lg">Add to which night?</h2>
+        <h2 className="title-lg">{lunches ? 'Add to which day?' : 'Add to which night?'}</h2>
         <button className="icon-btn" onClick={onClose} aria-label="Close">
           <Icon name="close" size={20} />
         </button>
@@ -379,26 +385,35 @@ function AddToWeekSheet({ recipe, onClose, onDone }: { recipe: RecipeT; onClose:
           </button>
         ))}
       </div>
+      {lunches && (
+        <div className="segmented" style={{ margin: '4px 0 12px' }}>
+          {(['lunch', 'dinner'] as const).map((sl) => (
+            <button key={sl} className={slot === sl ? 'on' : ''} onClick={() => setSlot(sl)} style={{ textTransform: 'capitalize' }}>
+              {sl}
+            </button>
+          ))}
+        </div>
+      )}
       <p className="faint" style={{ marginBottom: 10 }}>
         {weekRange(week)}
       </p>
       <div className="list-card">
         {DAY_LONG.map((d, i) => {
-          const m = plan?.meals.find((x) => x.day === i);
+          const m = plan?.meals.find((x) => isMeal(x, { day: i, slot }));
           const r = m ? RECIPE_BY_ID[m.recipeId] : undefined;
           return (
             <button
               key={d}
               className="pref-row"
               onClick={() => {
-                setMeal(week, i, recipe.id);
-                onDone(`Added to ${d} ✓`);
+                setMeal(week, { day: i, slot }, recipe.id);
+                onDone(`Added to ${d}${lunches ? ` ${slot}` : ''} ✓`);
                 onClose();
               }}
             >
               <div className="grow">
                 <b>{d}</b>
-                <small>{r ? `Replaces ${r.title}` : 'Free night'}</small>
+                <small>{r ? `Replaces ${r.title}` : slot === 'lunch' ? 'Free lunch' : 'Free night'}</small>
               </div>
               <Icon name={r ? 'swap' : 'plus'} size={18} />
             </button>

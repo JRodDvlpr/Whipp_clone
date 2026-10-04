@@ -1,7 +1,8 @@
 import { ING } from '../data/ingredients';
-import type { PlannedMeal, Profile, Recipe } from '../types';
+import type { MealKey, PlannedMeal, Profile, Recipe, Slot } from '../types';
 import { recipeCost, type PriceContext } from './cost';
 import { rng } from './rng';
+import { byDaySlot, isMeal, mealKeys, slotOf } from './slots';
 
 export interface PlanInput {
   profile: Profile;
@@ -10,7 +11,7 @@ export interface PlanInput {
   recent?: string[][];
   favorites?: string[];
   seed: number;
-  /** Meals to keep untouched (locked days, or the rest of the week when swapping). */
+  /** Meals to keep untouched (locked meals, or the rest of the week when swapping). */
   keep?: PlannedMeal[];
   ctx: PriceContext;
 }
@@ -19,8 +20,8 @@ export interface PlanResult {
   meals: PlannedMeal[];
   total: number;
   overBudget: boolean;
-  /** Days we couldn't fill because too few recipes match the filters. */
-  unfilled: number[];
+  /** Meals we couldn't fill because too few recipes match the filters. */
+  unfilled: MealKey[];
 }
 
 /** Hard constraints: diet, allergies, dislikes, appliances, kid-friendly. */
@@ -54,14 +55,18 @@ function baseScore(r: Recipe, input: PlanInput, jitter: () => number): number {
   return s + jitter() * 2;
 }
 
-/** How well `r` fits alongside the meals already chosen. */
-function varietyScore(r: Recipe, day: number, chosen: { day: number; recipe: Recipe }[]): number {
+type Chosen = { key: MealKey; recipe: Recipe };
+
+/** How well `r` fits alongside the meals already chosen. `perDay` scales the repeat limits for lunch + dinner weeks. */
+function varietyScore(r: Recipe, key: MealKey, chosen: Chosen[], perDay = 1): number {
   let s = 0;
   const sameProtein = chosen.filter((c) => c.recipe.mainProtein && c.recipe.mainProtein === r.mainProtein);
-  if (sameProtein.some((c) => Math.abs(c.day - day) === 1)) s -= 2.5;
-  if (sameProtein.length >= 2) s -= 1.5 * (sameProtein.length - 1);
+  // No main protein twice in a row: same meal on neighbouring days, or lunch and dinner on the same day.
+  const close = (c: Chosen) => (c.key.slot === key.slot && Math.abs(c.key.day - key.day) === 1) || (c.key.day === key.day && c.key.slot !== key.slot);
+  if (sameProtein.some(close)) s -= 2.5;
+  if (sameProtein.length >= 2 * perDay) s -= 1.5 * (sameProtein.length - 2 * perDay + 1);
   const sameCuisine = chosen.filter((c) => c.recipe.cuisine === r.cuisine).length;
-  s -= sameCuisine >= 2 ? 2 : sameCuisine * 0.5;
+  s -= sameCuisine >= 2 * perDay ? 2 : sameCuisine * (0.5 / perDay);
   // Reward sharing fresh ingredients — half a bag of spinach gets used twice, less waste.
   const fresh = new Set(chosen.flatMap((c) => freshIds(c.recipe)));
   const shared = freshIds(r).filter((id) => fresh.has(id)).length;
@@ -69,65 +74,70 @@ function varietyScore(r: Recipe, day: number, chosen: { day: number; recipe: Rec
   return s;
 }
 
+/** Lunches are drawn only from quick, lighter recipes. */
+const fitsSlot = (r: Recipe, slot: Slot) => slot === 'dinner' || r.lunch;
+
 export function generateWeek(input: PlanInput): PlanResult {
   const { profile, recipes, ctx } = input;
   const rand = rng(input.seed);
   const household = profile.household;
-  const days = [...profile.days].sort((a, b) => a - b);
-  const keep = (input.keep ?? []).filter((m) => days.includes(m.day));
+  const keys = mealKeys(profile.days, profile.meals?.length ? profile.meals : ['dinner']);
+  const perDay = Math.max(1, keys.length / Math.max(1, profile.days.length));
+  const keep = (input.keep ?? []).filter((m) => keys.some((k) => isMeal(m, k)));
   const byId = Object.fromEntries(recipes.map((r) => [r.id, r]));
 
   const pool = recipes.filter((r) => isEligible(r, profile));
   const score = new Map(pool.map((r) => [r.id, baseScore(r, input, rand)]));
   const cost = new Map(pool.map((r) => [r.id, recipeCost(r, household, ctx)]));
 
-  const chosen: { day: number; recipe: Recipe; meal: PlannedMeal }[] = keep
+  const chosen: (Chosen & { meal: PlannedMeal })[] = keep
     .filter((m) => byId[m.recipeId])
-    .map((m) => ({ day: m.day, recipe: byId[m.recipeId], meal: m }));
+    .map((m) => ({ key: { day: m.day, slot: slotOf(m) }, recipe: byId[m.recipeId], meal: m }));
   const used = new Set(chosen.map((c) => c.recipe.id));
   const keptCost = keep.reduce((s, m) => s + (byId[m.recipeId] ? recipeCost(byId[m.recipeId], m.servings, ctx, m.removed) : 0), 0);
+  const isKept = (k: MealKey) => keep.some((m) => isMeal(m, k));
 
   let remainingBudget = profile.weeklyBudget - keptCost;
-  const openDays = days.filter((d) => !keep.some((m) => m.day === d));
-  const unfilled: number[] = [];
+  const open = keys.filter((k) => !isKept(k));
+  const unfilled: MealKey[] = [];
 
-  openDays.forEach((day, idx) => {
-    const target = remainingBudget / (openDays.length - idx);
+  open.forEach((key, idx) => {
+    const target = remainingBudget / (open.length - idx);
     let best: Recipe | null = null;
     let bestScore = -Infinity;
     for (const r of pool) {
-      if (used.has(r.id)) continue;
+      if (used.has(r.id) || !fitsSlot(r, key.slot)) continue;
       const c = cost.get(r.id)!;
       const budgetFit = c > target ? (-3 * (c - target)) / Math.max(target, 1) : Math.min(0.5, (0.3 * (target - c)) / Math.max(target, 1));
-      const s = score.get(r.id)! + varietyScore(r, day, chosen) + budgetFit;
+      const s = score.get(r.id)! + varietyScore(r, key, chosen, perDay) + budgetFit;
       if (s > bestScore) {
         bestScore = s;
         best = r;
       }
     }
     if (!best) {
-      unfilled.push(day);
+      unfilled.push(key);
       return;
     }
     used.add(best.id);
     remainingBudget -= cost.get(best.id)!;
-    chosen.push({ day, recipe: best, meal: { day, recipeId: best.id, servings: household, removed: [] } });
+    chosen.push({ key, recipe: best, meal: { day: key.day, slot: key.slot, recipeId: best.id, servings: household, removed: [] } });
   });
 
   // Budget fit: swap the worst value-for-money meal for a cheaper candidate until under the cap.
   const total = () => chosen.reduce((s, c) => s + recipeCost(c.recipe, c.meal.servings, ctx, c.meal.removed), 0);
-  for (let i = 0; i < 40 && total() > profile.weeklyBudget; i++) {
+  for (let i = 0; i < 60 && total() > profile.weeklyBudget; i++) {
     let bestSwap: { idx: number; r: Recipe; metric: number } | null = null;
     chosen.forEach((c, idx) => {
-      if (keep.some((k) => k.day === c.day)) return;
+      if (isKept(c.key)) return;
       const cur = cost.get(c.recipe.id)!;
+      const others = chosen.filter((_, j) => j !== idx);
+      const curScore = score.get(c.recipe.id)! + varietyScore(c.recipe, c.key, others, perDay);
       for (const r of pool) {
-        if (used.has(r.id)) continue;
+        if (used.has(r.id) || !fitsSlot(r, c.key.slot)) continue;
         const saving = cur - cost.get(r.id)!;
         if (saving <= 0.01) continue;
-        const others = chosen.filter((_, j) => j !== idx);
-        const loss = score.get(c.recipe.id)! + varietyScore(c.recipe, c.day, others) - (score.get(r.id)! + varietyScore(r, c.day, others));
-        const metric = loss / saving;
+        const metric = (curScore - (score.get(r.id)! + varietyScore(r, c.key, others, perDay))) / saving;
         if (!bestSwap || metric < bestSwap.metric) bestSwap = { idx, r, metric };
       }
     });
@@ -138,34 +148,35 @@ export function generateWeek(input: PlanInput): PlanResult {
     chosen[idx] = { ...chosen[idx], recipe: r, meal: { ...chosen[idx].meal, recipeId: r.id, removed: [] } };
   }
 
-  const meals = chosen.map((c) => c.meal).sort((a, b) => a.day - b.day);
+  const meals = chosen.map((c) => c.meal).sort(byDaySlot);
   const t = total();
   return { meals, total: t, overBudget: t > profile.weeklyBudget + 0.005, unfilled };
 }
 
 export interface SwapOption {
   recipe: Recipe;
-  /** Week total if this option replaces the meal on `day`. */
+  /** Week total if this option replaces the meal at `key`. */
   newTotal: number;
   delta: number;
   fitsBudget: boolean;
 }
 
-/** Ranked alternatives for one day, keeping the rest of the week. */
-export function swapOptions(input: PlanInput & { meals: PlannedMeal[]; day: number; limit?: number }): SwapOption[] {
-  const { profile, recipes, ctx, meals, day } = input;
+/** Ranked alternatives for one meal, keeping the rest of the week. */
+export function swapOptions(input: PlanInput & { meals: PlannedMeal[]; key: MealKey; limit?: number }): SwapOption[] {
+  const { profile, recipes, ctx, meals, key } = input;
   const rand = rng(input.seed);
   const byId = Object.fromEntries(recipes.map((r) => [r.id, r]));
-  const current = meals.find((m) => m.day === day);
-  const others = meals.filter((m) => m.day !== day && byId[m.recipeId]);
+  const current = meals.find((m) => isMeal(m, key));
+  const others = meals.filter((m) => !isMeal(m, key) && byId[m.recipeId]);
   const othersCost = others.reduce((s, m) => s + recipeCost(byId[m.recipeId], m.servings, ctx, m.removed), 0);
   const curCost = current && byId[current.recipeId] ? recipeCost(byId[current.recipeId], current.servings, ctx, current.removed) : 0;
   const inWeek = new Set(meals.map((m) => m.recipeId));
-  const chosen = others.map((m) => ({ day: m.day, recipe: byId[m.recipeId] }));
+  const chosen = others.map((m) => ({ key: { day: m.day, slot: slotOf(m) }, recipe: byId[m.recipeId] }));
   const servings = current?.servings ?? profile.household;
+  const perDay = Math.max(1, profile.meals?.length ?? 1);
 
   return recipes
-    .filter((r) => !inWeek.has(r.id) && isEligible(r, profile))
+    .filter((r) => !inWeek.has(r.id) && isEligible(r, profile) && fitsSlot(r, key.slot))
     .map((r) => {
       const c = recipeCost(r, servings, ctx);
       const newTotal = othersCost + c;
@@ -174,7 +185,7 @@ export function swapOptions(input: PlanInput & { meals: PlannedMeal[]; day: numb
         newTotal,
         delta: c - curCost,
         fitsBudget: newTotal <= profile.weeklyBudget + 0.005,
-        s: baseScore(r, input, rand) + varietyScore(r, day, chosen),
+        s: baseScore(r, input, rand) + varietyScore(r, key, chosen, perDay),
       };
     })
     .sort((a, b) => Number(b.fitsBudget) - Number(a.fitsBudget) || b.s - a.s)

@@ -6,7 +6,8 @@ import { ALLERGENS, APPLIANCES, DAY_SHORT, DIETS, PRIORITIES } from '../../data/
 import { isEligible } from '../../engine/planner';
 import { CURRENCY } from '../../engine/pricing';
 import { useApp } from '../../state/store';
-import type { Appliance, Profile } from '../../types';
+import { reminderIcs, reminderLabel } from '../../engine/reminder';
+import type { Appliance, Profile, Reminder, Slot } from '../../types';
 import { Icon } from '../../ui/Icon';
 import { Chip, Stepper, Toggle } from '../../ui/primitives';
 import { KitchenPicker } from './Kitchen';
@@ -285,7 +286,9 @@ function DaysBody() {
         <div className="row">
           <div className="icon-tile soft">🍽️</div>
           <div className="grow">
-            <b style={{ fontSize: 18 }}>{profile.days.length} dinners a week</b>
+            <b style={{ fontSize: 18 }}>
+              {profile.days.length * profile.meals.length} {profile.meals.length > 1 ? 'meals' : 'dinners'} a week
+            </b>
             <div className="faint">{matches} recipes match your preferences</div>
           </div>
         </div>
@@ -300,18 +303,126 @@ function DaysBody() {
   );
 }
 
-export const STEPS: StepDef[] = [
-  { id: 'store', eyebrow: 'Your store', title: ['Where do you', 'shop?'], sub: 'Prices of meal plans adapt to your choice.', Body: StoreBody },
-  { id: 'budget', eyebrow: 'Weekly budget', title: ['Set your', 'budget'], sub: 'Slide to set your weekly grocery cap.', Body: BudgetBody },
-  { id: 'diet', eyebrow: 'Your diet', title: ['Any dietary', 'needs?'], sub: 'We respect these on every plan, automatically.', Body: DietBody },
-  {
+function MealsBody() {
+  const meals = useApp((s) => s.profile.meals);
+  const setProfile = useApp((s) => s.setProfile);
+  const options: { value: Slot[]; emoji: string; title: string; sub: string }[] = [
+    { value: ['dinner'], emoji: '🍽️', title: 'Just dinner', sub: 'One proper dinner each day' },
+    { value: ['lunch', 'dinner'], emoji: '🥗', title: 'Lunch & dinner', sub: 'Quick, lighter lunches plus dinner' },
+  ];
+  return (
+    <div className="stack">
+      {options.map((o) => {
+        const on = o.value.length === meals.length && o.value.every((v) => meals.includes(v));
+        return (
+          <button key={o.title} className={`option-card ${on ? 'on' : ''}`} onClick={() => setProfile({ meals: o.value })} aria-pressed={on}>
+            <span className="icon-tile soft" style={{ fontSize: 26 }}>
+              {o.emoji}
+            </span>
+            <span className="grow">
+              <b>{o.title}</b>
+              <small>{o.sub}</small>
+            </span>
+            <span className={`radio ${on ? 'on' : ''}`} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function AvoidBody() {
+  return (
+    <>
+      <DietBody />
+      <div className="eyebrow" style={{ margin: '30px 0 12px' }}>
+        Foods you can’t stand
+      </div>
+      <DislikesBody />
+    </>
+  );
+}
+
+function ReminderBody() {
+  const reminder = useApp((s) => s.profile.reminder);
+  const setProfile = useApp((s) => s.setProfile);
+  const set = (patch: Partial<Reminder>) => setProfile({ reminder: { ...reminder, ...patch } });
+  const addToCalendar = () => {
+    const url = window.location.href.split('#')[0];
+    const ics = reminderIcs(reminder, url);
+    const a = document.createElement('a');
+    a.href = `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+    a.download = 'whipp-weekly-reminder.ics';
+    a.click();
+  };
+  return (
+    <>
+      <div className="setting-card row between">
+        <span style={{ fontWeight: 700, fontSize: 18 }}>Weekly reminder</span>
+        <Toggle on={reminder.on} onChange={(on) => set({ on })} label="Weekly reminder" />
+      </div>
+      {reminder.on && (
+        <>
+          <div className="eyebrow" style={{ margin: '24px 0 12px' }}>
+            Remind me on
+          </div>
+          <div className="day-strip" style={{ margin: 0 }}>
+            <div className="days">
+              {DAY_SHORT.map((d, i) => (
+                <button
+                  key={d}
+                  className={`day-pill ${reminder.day === i ? 'on' : ''}`}
+                  onClick={() => set({ day: i })}
+                  aria-pressed={reminder.day === i}
+                >
+                  <small>{d}</small>
+                  <b>{reminder.day === i ? '✓' : '–'}</b>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="setting-card row between" style={{ marginTop: 14 }}>
+            <span style={{ fontWeight: 600 }}>Time</span>
+            <input
+              className="time-input"
+              type="time"
+              value={reminder.time}
+              onChange={(e) => e.target.value && set({ time: e.target.value })}
+              aria-label="Reminder time"
+            />
+          </div>
+          <button className="btn btn-forest btn-block" style={{ marginTop: 18 }} onClick={addToCalendar}>
+            <Icon name="calendar" size={18} /> Add to my calendar
+          </button>
+          <p className="faint" style={{ fontSize: 14, marginTop: 12 }}>
+            Your phone’s calendar will alert you {reminderLabel(reminder).toLowerCase()} — the app also shows a nudge on the Plan tab when next week
+            still needs planning.
+          </p>
+        </>
+      )}
+    </>
+  );
+}
+
+/** Every editable preference section (used by Profile → edit). */
+export const SECTIONS: Record<string, StepDef> = {
+  store: { id: 'store', eyebrow: 'Your store', title: ['Where do you', 'shop?'], sub: 'Prices of meal plans adapt to your choice.', Body: StoreBody },
+  budget: { id: 'budget', eyebrow: 'Weekly budget', title: ['Set your', 'budget'], sub: 'Slide to set your weekly grocery cap.', Body: BudgetBody },
+  meals: {
+    id: 'meals',
+    eyebrow: 'Meals per day',
+    title: ['Which meals', 'should we plan?'],
+    sub: 'Your budget covers everything we plan.',
+    Body: MealsBody,
+  },
+  priorities: {
     id: 'priorities',
     eyebrow: 'Your priorities',
     title: ['What are you', 'into?'],
     sub: 'Tap all that fit. They shape every week.',
     Body: PrioritiesBody,
   },
-  {
+  kitchen: {
     id: 'kitchen',
     eyebrow: 'Your kitchen',
     title: ['What’s in your', 'kitchen?'],
@@ -319,19 +430,51 @@ export const STEPS: StepDef[] = [
     Body: KitchenBody,
     block: (p) => (p.appliances.length ? null : 'Pick at least one appliance'),
   },
-  {
+  days: {
+    id: 'days',
+    eyebrow: 'Cooking days',
+    title: ['Which days do', 'you cook?'],
+    sub: 'We’ll plan meals for each day you pick.',
+    Body: DaysBody,
+    block: (p) => (p.days.length ? null : 'Pick at least one day'),
+  },
+  diet: {
+    id: 'diet',
+    eyebrow: 'Dietary needs',
+    title: ['Any dietary', 'needs?'],
+    sub: 'We respect these on every plan, automatically.',
+    Body: DietBody,
+  },
+  dislikes: {
     id: 'dislikes',
-    eyebrow: 'Your no-go list',
+    eyebrow: 'Dislikes',
     title: ['Anything you', 'can’t stand?'],
     sub: 'Tell us once — it’s gone for good.',
     Body: DislikesBody,
   },
-  {
-    id: 'days',
-    eyebrow: 'Your week',
-    title: ['Which nights', 'need dinner?'],
-    sub: 'We’ll plan a dinner for each night you pick.',
-    Body: DaysBody,
-    block: (p) => (p.days.length ? null : 'Pick at least one night'),
+  avoid: {
+    id: 'avoid',
+    eyebrow: 'Dietary needs',
+    title: ['Anything to', 'avoid?'],
+    sub: 'Diets, allergies and foods you can’t stand — respected every week.',
+    Body: AvoidBody,
   },
+  reminder: {
+    id: 'reminder',
+    eyebrow: 'Reminders',
+    title: ['A nudge to', 'plan ahead'],
+    sub: 'Get a weekly reminder to plan next week’s meals.',
+    Body: ReminderBody,
+  },
+};
+
+/** Onboarding order (7 steps, like Whipp). */
+export const STEPS: StepDef[] = [
+  SECTIONS.store,
+  SECTIONS.budget,
+  SECTIONS.meals,
+  SECTIONS.priorities,
+  SECTIONS.kitchen,
+  SECTIONS.days,
+  SECTIONS.avoid,
 ];

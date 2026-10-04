@@ -8,7 +8,8 @@ import { addWeeks, weekStart } from '../engine/dates';
 import { generateWeek } from '../engine/planner';
 import type { PriceOverrides } from '../engine/pricing';
 import { newSeed } from '../engine/rng';
-import type { Country, PlannedMeal, Profile, WeekPlan } from '../types';
+import { byDaySlot, isMeal } from '../engine/slots';
+import type { Country, MealKey, PlannedMeal, Profile, WeekPlan } from '../types';
 
 // Everything lives on the device (IndexedDB), like Whipp — no account, no server.
 const idbStorage: StateStorage = {
@@ -40,6 +41,8 @@ export function defaultProfile(country: Country = guessCountry()): Profile {
     priorities: [],
     appliances: ['stove', 'oven'],
     days: [0, 1, 2, 3, 4, 5, 6],
+    meals: ['dinner'],
+    reminder: { on: false, day: 6, time: '17:00' },
     units: 'auto',
   };
 }
@@ -58,11 +61,11 @@ export interface AppState {
   planWeek: (week: string) => WeekPlan;
   redoWeek: (week: string) => void;
   deletePlan: (week: string) => void;
-  setMeal: (week: string, day: number, recipeId: string) => void;
-  removeMeal: (week: string, day: number) => void;
-  setServings: (week: string, day: number, servings: number) => void;
-  toggleRemoved: (week: string, day: number, ingredientId: string) => void;
-  toggleLock: (week: string, day: number) => void;
+  setMeal: (week: string, key: MealKey, recipeId: string) => void;
+  removeMeal: (week: string, key: MealKey) => void;
+  setServings: (week: string, key: MealKey, servings: number) => void;
+  toggleRemoved: (week: string, key: MealKey, ingredientId: string) => void;
+  toggleLock: (week: string, key: MealKey) => void;
   toggleCheck: (week: string, key: string, current: boolean) => void;
   addCustom: (week: string, name: string) => void;
   removeCustom: (week: string, id: string) => void;
@@ -72,6 +75,9 @@ export interface AppState {
   importData: (data: Partial<Pick<AppState, 'profile' | 'plans' | 'favorites' | 'overrides' | 'onboarded'>>) => void;
   reset: () => void;
 }
+
+/** Fill any profile fields added since the data was saved. */
+export const withDefaults = (p: Partial<Profile>): Profile => ({ ...defaultProfile(p.country), ...p });
 
 const ctxOf = (p: Profile, overrides: PriceOverrides) => ({ country: p.country, storeId: p.storeId, overrides });
 
@@ -120,8 +126,8 @@ export const useApp = create<AppState>()(
           const total = weekCost(next.meals, RECIPE_BY_ID, { country: next.country, storeId: next.storeId, overrides: s.overrides });
           return { plans: { ...s.plans, [week]: { ...next, overBudget: total > next.budget + 0.005 } } };
         });
-      const updateMeal = (week: string, day: number, fn: (m: PlannedMeal) => PlannedMeal) =>
-        updatePlan(week, (p) => ({ ...p, meals: p.meals.map((m) => (m.day === day ? fn(m) : m)) }));
+      const updateMeal = (week: string, key: MealKey, fn: (m: PlannedMeal) => PlannedMeal) =>
+        updatePlan(week, (p) => ({ ...p, meals: p.meals.map((m) => (isMeal(m, key) ? fn(m) : m)) }));
 
       return {
         onboarded: false,
@@ -161,7 +167,7 @@ export const useApp = create<AppState>()(
             delete plans[week];
             return { plans };
           }),
-        setMeal: (week, day, recipeId) => {
+        setMeal: (week, key, recipeId) => {
           if (!getState().plans[week]) {
             const s = getState();
             setState({
@@ -183,17 +189,17 @@ export const useApp = create<AppState>()(
             });
           }
           updatePlan(week, (p) => {
-            const existing = p.meals.find((m) => m.day === day);
-            const meal: PlannedMeal = { day, recipeId, servings: existing?.servings ?? p.household, removed: [], locked: existing?.locked };
-            const meals = existing ? p.meals.map((m) => (m.day === day ? meal : m)) : [...p.meals, meal].sort((a, b) => a.day - b.day);
+            const existing = p.meals.find((m) => isMeal(m, key));
+            const meal: PlannedMeal = { ...key, recipeId, servings: existing?.servings ?? p.household, removed: [], locked: existing?.locked };
+            const meals = existing ? p.meals.map((m) => (isMeal(m, key) ? meal : m)) : [...p.meals, meal].sort(byDaySlot);
             return { ...p, meals };
           });
         },
-        removeMeal: (week, day) => updatePlan(week, (p) => ({ ...p, meals: p.meals.filter((m) => m.day !== day) })),
-        setServings: (week, day, servings) => updateMeal(week, day, (m) => ({ ...m, servings: Math.max(1, Math.min(12, servings)) })),
-        toggleRemoved: (week, day, id) =>
-          updateMeal(week, day, (m) => ({ ...m, removed: m.removed.includes(id) ? m.removed.filter((x) => x !== id) : [...m.removed, id] })),
-        toggleLock: (week, day) => updateMeal(week, day, (m) => ({ ...m, locked: !m.locked })),
+        removeMeal: (week, key) => updatePlan(week, (p) => ({ ...p, meals: p.meals.filter((m) => !isMeal(m, key)) })),
+        setServings: (week, key, servings) => updateMeal(week, key, (m) => ({ ...m, servings: Math.max(1, Math.min(12, servings)) })),
+        toggleRemoved: (week, key, id) =>
+          updateMeal(week, key, (m) => ({ ...m, removed: m.removed.includes(id) ? m.removed.filter((x) => x !== id) : [...m.removed, id] })),
+        toggleLock: (week, key) => updateMeal(week, key, (m) => ({ ...m, locked: !m.locked })),
         toggleCheck: (week, key, current) => updatePlan(week, (p) => ({ ...p, checks: { ...p.checks, [key]: !current } })),
         addCustom: (week, name) =>
           updatePlan(week, (p) => ({ ...p, custom: [...p.custom, { id: `custom-${Date.now().toString(36)}`, name: name.trim() }] })),
@@ -211,13 +217,19 @@ export const useApp = create<AppState>()(
             else overrides[key] = price;
             return { overrides };
           }),
-        importData: (data) => setState((s) => ({ ...s, ...data })),
+        importData: (data) => setState((s) => ({ ...s, ...data, profile: data.profile ? withDefaults(data.profile) : s.profile })),
         reset: () => setState({ onboarded: false, profile: defaultProfile(), plans: {}, favorites: [], overrides: {}, supportId: randomId() }),
       };
     },
     {
       name: 'whipp-clone',
-      version: 1,
+      version: 2,
+      // v2 added meals-per-day and the weekly reminder; fill them in for data saved by v1.
+      migrate: (persisted, version) => {
+        const st = persisted as Partial<AppState>;
+        if (version < 2 && st.profile) st.profile = withDefaults(st.profile);
+        return st as AppState;
+      },
       storage: createJSONStorage(() => idbStorage),
       partialize: (s) => ({
         onboarded: s.onboarded,

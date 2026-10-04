@@ -108,6 +108,8 @@ export interface Recipe extends Omit<RecipeSource, 'steps' | 'tags'> {
   ingredientIds: string[];
   /** Resolved photo URL. */
   image?: string;
+  /** Light and quick enough to offer as a lunch. */
+  lunch: boolean;
 }
 
 export interface Store {
@@ -123,6 +125,22 @@ export interface Store {
   home: string;
 }
 
+export type Slot = 'lunch' | 'dinner';
+
+/** Identifies one meal in a week: a day and a slot. */
+export interface MealKey {
+  day: number;
+  slot: Slot;
+}
+
+export interface Reminder {
+  on: boolean;
+  /** 0 = Monday … 6 = Sunday. */
+  day: number;
+  /** "HH:MM", 24-hour. */
+  time: string;
+}
+
 export interface Profile {
   country: Country;
   storeId: string;
@@ -136,12 +154,17 @@ export interface Profile {
   appliances: Appliance[];
   /** 0 = Monday … 6 = Sunday. */
   days: number[];
+  /** Which meals to plan each day — Whipp's "Meals per day". */
+  meals: Slot[];
+  reminder: Reminder;
   units: 'auto' | 'metric' | 'imperial';
 }
 
 export interface PlannedMeal {
   /** 0 = Monday … 6 = Sunday. */
   day: number;
+  /** Missing on plans saved before lunches existed — treat as dinner. */
+  slot?: Slot;
   recipeId: string;
   servings: number;
   removed: string[];

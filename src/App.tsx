@@ -10,6 +10,7 @@ import { Onboarding } from './screens/onboarding/Onboarding';
 import { Plan } from './screens/Plan';
 import { Plans } from './screens/Plans';
 import { Profile, ProfileEdit } from './screens/Profile';
+import { Info } from './screens/Info';
 import { Recipe } from './screens/Recipe';
 import { Planning, Welcome } from './screens/Welcome';
 
@@ -88,6 +89,7 @@ const router = createHashRouter([
       { path: '/recipe/:id', element: <Recipe /> },
       { path: '/cook/:id', element: <Cook /> },
       { path: '/profile/edit/:section', element: <ProfileEdit /> },
+      { path: '/info/:page', element: <Info /> },
     ],
   },
   { path: '*', element: <Navigate to="/plan" replace /> },

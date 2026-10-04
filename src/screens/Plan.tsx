@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { RECIPES, RECIPE_BY_ID } from '../data/recipes';
 import { DAY_LONG, DAY_SHORT } from '../data/taxonomy';
@@ -8,7 +8,8 @@ import { money } from '../engine/pricing';
 import { newSeed } from '../engine/rng';
 import { useIsWide, usePlanCtx, useWeekSummary } from '../state/hooks';
 import { currentWeek, useApp } from '../state/store';
-import type { PlannedMeal, WeekPlan } from '../types';
+import { SLOTS, isMeal, keyId, slotOf } from '../engine/slots';
+import type { MealKey, PlannedMeal, Slot, WeekPlan } from '../types';
 import { Icon } from '../ui/Icon';
 import { MealImage, Ring, Sheet, Tags, TopNav, recipeTags, useToast } from '../ui/primitives';
 
@@ -24,23 +25,35 @@ export function Plan() {
   const toast = useToast();
   const wide = useIsWide();
   const today = todayIndex(week);
-  const [selected, setSelected] = useState(today >= 0 ? today : 0);
-  const [swap, setSwap] = useState<{ day: number; mode: 'swap' | 'add' } | null>(null);
+  const [selected, setSelected] = useState(0);
+  const [swap, setSwap] = useState<{ key: MealKey; mode: 'swap' | 'add' } | null>(null);
   const country = plan?.country ?? profile.country;
   const fmt = (n: number) => money(n, country);
 
+  // The highlighted day follows the scroll position, like Whipp (Monday when you're at the top).
   useEffect(() => {
-    setSelected(today >= 0 ? today : 0);
-  }, [week, today]);
+    const onScroll = () => {
+      const blocks = [...document.querySelectorAll<HTMLElement>('.day-block')];
+      let current = blocks[0];
+      for (const b of blocks) if (b.getBoundingClientRect().top <= 140) current = b;
+      if (current) setSelected(Number(current.dataset.day));
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [week, plan]);
 
   const goWeek = (n: number) => setParams({ week: addWeeks(week, n) }, { replace: true });
   const jump = (day: number) => {
-    setSelected(day);
     document.getElementById(`day-${day}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const label = weekLabel(week);
   const days = plan ? [...new Set([...profile.days, ...plan.meals.map((m) => m.day)])].sort((a, b) => a - b) : profile.days;
+  // Show LUNCH / DINNER labels once a week has more than one meal a day.
+  const slots = SLOTS.filter((sl) => profile.meals.includes(sl) || plan?.meals.some((m) => slotOf(m) === sl));
+  const labelled = slots.length > 1;
+  const mealWord = profile.meals.length > 1 ? 'meals' : 'dinners';
 
   return (
     <>
@@ -49,8 +62,8 @@ export function Plan() {
           <div className="row between">
             <div className="logo">Whipp</div>
             <TopNav />
-            <Link to="/plans" className="icon-btn outline-lime" aria-label="My weekly plans">
-              <Icon name="calendar" size={20} />
+            <Link to="/plans" className="calendar-btn" aria-label="My weekly plans">
+              <Icon name="calendar" size={24} />
             </Link>
           </div>
 
@@ -139,30 +152,32 @@ export function Plan() {
       </header>
 
       <div className={`screen ${wide ? 'wide' : ''}`} style={{ paddingTop: 0 }}>
-        <div className="day-strip">
-          <button className="arrow-btn" onClick={() => goWeek(-1)} aria-label="Previous week">
-            <Icon name="chevronLeft" size={22} />
-          </button>
-          <div className="days">
-            {DAY_SHORT.map((d, i) => {
-              const has = plan?.meals.some((m) => m.day === i);
-              return (
-                <button
-                  key={d}
-                  className={`day-pill ${i === selected ? 'on' : ''} ${has ? '' : 'empty'}`}
-                  onClick={() => jump(i)}
-                  aria-label={`${DAY_LONG[i]}${has ? '' : ', no dinner planned'}`}
-                >
-                  <small>{d}</small>
-                  <b>{dayDate(week, i).getDate()}</b>
-                  {i === today && i !== selected && <span className="dot" />}
-                </button>
-              );
-            })}
+        <div className="strip-band">
+          <div className="day-strip">
+            <button className="arrow-btn" onClick={() => goWeek(-1)} aria-label="Previous week" disabled={week <= currentWeek()}>
+              <Icon name="chevronLeft" size={22} />
+            </button>
+            <div className="days">
+              {DAY_SHORT.map((d, i) => {
+                const has = plan?.meals.some((m) => m.day === i);
+                return (
+                  <button
+                    key={d}
+                    className={`day-pill ${i === selected ? 'on' : ''} ${has ? '' : 'empty'}`}
+                    onClick={() => jump(i)}
+                    aria-label={`${DAY_LONG[i]}${has ? '' : ', no dinner planned'}`}
+                  >
+                    <small>{d}</small>
+                    <b>{dayDate(week, i).getDate()}</b>
+                    {i === today && i !== selected && <span className="dot" />}
+                  </button>
+                );
+              })}
+            </div>
+            <button className="arrow-btn" onClick={() => goWeek(1)} aria-label="Next week">
+              <Icon name="chevronRight" size={22} />
+            </button>
           </div>
-          <button className="arrow-btn" onClick={() => goWeek(1)} aria-label="Next week">
-            <Icon name="chevronRight" size={22} />
-          </button>
         </div>
 
         {plan ? (
@@ -192,21 +207,31 @@ export function Plan() {
             )}
             <div className="meal-list">
               {days.map((day) => {
-                const meal = plan.meals.find((m) => m.day === day);
                 return (
-                  <section key={day} className="day-block" id={`day-${day}`}>
+                  <section key={day} className="day-block" id={`day-${day}`} data-day={day}>
                     <div className="day-head">
                       <h2>{DAY_LONG[day]}</h2>
                       <span className="date">{shortDate(dayDate(week, day))}</span>
                       {day === today && <span className="today">TODAY</span>}
                     </div>
-                    {meal ? (
-                      <MealCard plan={plan} meal={meal} cost={summary?.mealCosts[day] ?? 0} onSwap={() => setSwap({ day, mode: 'swap' })} />
-                    ) : (
-                      <button className="empty-day" onClick={() => setSwap({ day, mode: 'add' })}>
-                        <Icon name="plus" size={18} stroke={2.6} /> Add a dinner
-                      </button>
-                    )}
+                    {slots.map((slot) => {
+                      const key = { day, slot };
+                      const meal = plan.meals.find((m) => isMeal(m, key));
+                      return meal ? (
+                        <MealCard
+                          key={slot}
+                          plan={plan}
+                          meal={meal}
+                          label={labelled ? slot : undefined}
+                          cost={summary?.mealCosts[keyId(key)] ?? 0}
+                          onSwap={() => setSwap({ key, mode: 'swap' })}
+                        />
+                      ) : (
+                        <button key={slot} className="empty-day" onClick={() => setSwap({ key, mode: 'add' })}>
+                          <Icon name="plus" size={18} stroke={2.6} /> Add {slot === 'lunch' ? 'a lunch' : 'a dinner'}
+                        </button>
+                      );
+                    })}
                   </section>
                 );
               })}
@@ -219,7 +244,8 @@ export function Plan() {
             </div>
             <h2 className="title-md">{label} isn’t planned yet</h2>
             <p className="muted" style={{ margin: '8px 0 18px' }}>
-              {profile.days.length} dinners around your {money(profile.weeklyBudget, profile.country, true)} budget, in seconds.
+              {profile.days.length * profile.meals.length} {mealWord} around your {money(profile.weeklyBudget, profile.country, true)} budget, in
+              seconds.
             </p>
             <button
               className="btn btn-lime btn-block"
@@ -234,24 +260,58 @@ export function Plan() {
         )}
       </div>
 
-      {swap && plan && <SwapSheet plan={plan} day={swap.day} mode={swap.mode} onClose={() => setSwap(null)} />}
+      {swap && plan && <SwapSheet plan={plan} mealKey={swap.key} mode={swap.mode} onClose={() => setSwap(null)} />}
       {toast.node}
     </>
   );
 }
 
-function MealCard({ plan, meal, cost, onSwap }: { plan: WeekPlan; meal: PlannedMeal; cost: number; onSwap: () => void }) {
+function MealCard({ plan, meal, cost, label, onSwap }: { plan: WeekPlan; meal: PlannedMeal; cost: number; label?: Slot; onSwap: () => void }) {
   const recipe = RECIPE_BY_ID[meal.recipeId];
   const priorities = useApp((s) => s.profile.priorities);
+  const timer = useRef<number | undefined>(undefined);
+  const held = useRef(false);
+  const [pressing, setPressing] = useState(false);
   if (!recipe) return null;
+  // Press and hold a card to swap it (Whipp's cards have no visible swap button).
+  const start = () => {
+    held.current = false;
+    setPressing(true);
+    timer.current = window.setTimeout(() => {
+      held.current = true;
+      setPressing(false);
+      navigator.vibrate?.(15);
+      onSwap();
+    }, 500);
+  };
+  const cancel = () => {
+    window.clearTimeout(timer.current);
+    setPressing(false);
+  };
   return (
-    <div className="meal-card">
-      <Link to={`/recipe/${recipe.id}?week=${plan.week}&day=${meal.day}`} className="row grow" style={{ gap: 14, alignItems: 'stretch' }}>
+    <div
+      className={`meal-card ${pressing ? 'pressing' : ''}`}
+      onPointerDown={start}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      onPointerCancel={cancel}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      <Link
+        to={`/recipe/${recipe.id}?week=${plan.week}&day=${meal.day}&slot=${slotOf(meal)}`}
+        className="row grow"
+        style={{ gap: 14, alignItems: 'stretch' }}
+        draggable={false}
+        onClick={(e) => held.current && e.preventDefault()}
+      >
         <div className="thumb">
           <MealImage recipe={recipe} />
         </div>
         <div className="body">
-          <Tags tags={recipeTags(recipe, priorities)} />
+          <div className="row" style={{ gap: 8 }}>
+            {label && <span className="slot-label">{label}</span>}
+            <Tags tags={recipeTags(recipe, priorities, label ? 1 : 2)} />
+          </div>
           <h3>{recipe.title}</h3>
           <p className="desc">{recipe.description}</p>
           <div className="foot">
@@ -270,14 +330,15 @@ function MealCard({ plan, meal, cost, onSwap }: { plan: WeekPlan; meal: PlannedM
           <Icon name="lock" size={15} />
         </span>
       )}
-      <button className="swap" onClick={onSwap} aria-label={`Swap ${recipe.title}`}>
-        <Icon name="swap" size={16} stroke={2.2} />
+      <button className="sr-only" onClick={onSwap}>
+        Swap {recipe.title}
       </button>
     </div>
   );
 }
 
-export function SwapSheet({ plan, day, mode, onClose }: { plan: WeekPlan; day: number; mode: 'swap' | 'add'; onClose: () => void }) {
+export function SwapSheet({ plan, mealKey, mode, onClose }: { plan: WeekPlan; mealKey: MealKey; mode: 'swap' | 'add'; onClose: () => void }) {
+  const { day, slot } = mealKey;
   const profile = useApp((s) => s.profile);
   const favorites = useApp((s) => s.favorites);
   const plans = useApp((s) => s.plans);
@@ -286,7 +347,7 @@ export function SwapSheet({ plan, day, mode, onClose }: { plan: WeekPlan; day: n
   const toggleLock = useApp((s) => s.toggleLock);
   const ctx = usePlanCtx(plan);
   const [seed, setSeed] = useState(() => newSeed());
-  const meal = plan.meals.find((m) => m.day === day);
+  const meal = plan.meals.find((m) => isMeal(m, mealKey));
   const current = meal ? RECIPE_BY_ID[meal.recipeId] : undefined;
 
   const options = useMemo(
@@ -299,19 +360,21 @@ export function SwapSheet({ plan, day, mode, onClose }: { plan: WeekPlan; day: n
         favorites,
         recent: [1, 2].map((n) => plans[addWeeks(plan.week, -n)]?.meals.map((m) => m.recipeId) ?? []),
         meals: plan.meals,
-        day,
+        key: mealKey,
         limit: 6,
       }),
-    [profile, plan, seed, ctx, favorites, plans, day],
+    [profile, plan, seed, ctx, favorites, plans, mealKey],
   );
   const fmt = (n: number) => money(Math.abs(n), plan.country);
 
   return (
-    <Sheet open onClose={onClose} label={mode === 'swap' ? 'Swap meal' : 'Add a dinner'}>
+    <Sheet open onClose={onClose} label={mode === 'swap' ? 'Swap meal' : `Add a ${slot}`}>
       <div className="row between">
         <div>
-          <div className="eyebrow">{DAY_LONG[day]}</div>
-          <h2 className="title-lg">{mode === 'swap' ? 'Swap this meal' : 'Add a dinner'}</h2>
+          <div className="eyebrow">
+            {DAY_LONG[day]} · {slot}
+          </div>
+          <h2 className="title-lg">{mode === 'swap' ? 'Swap this meal' : `Add a ${slot}`}</h2>
         </div>
         <button className="icon-btn" onClick={onClose} aria-label="Close">
           <Icon name="close" size={20} />
@@ -329,7 +392,7 @@ export function SwapSheet({ plan, day, mode, onClose }: { plan: WeekPlan; day: n
             className="meal-card"
             style={{ padding: 10 }}
             onClick={() => {
-              setMeal(plan.week, day, o.recipe.id);
+              setMeal(plan.week, mealKey, o.recipe.id);
               onClose();
             }}
           >
@@ -361,7 +424,7 @@ export function SwapSheet({ plan, day, mode, onClose }: { plan: WeekPlan; day: n
             <button
               className="btn btn-white btn-sm"
               onClick={() => {
-                toggleLock(plan.week, day);
+                toggleLock(plan.week, mealKey);
                 onClose();
               }}
             >
@@ -370,11 +433,11 @@ export function SwapSheet({ plan, day, mode, onClose }: { plan: WeekPlan; day: n
             <button
               className="btn btn-ghost btn-sm"
               onClick={() => {
-                removeMeal(plan.week, day);
+                removeMeal(plan.week, mealKey);
                 onClose();
               }}
             >
-              <Icon name="trash" size={16} /> Skip this night
+              <Icon name="trash" size={16} /> Skip this {slot === 'lunch' ? 'lunch' : 'night'}
             </button>
           </>
         )}

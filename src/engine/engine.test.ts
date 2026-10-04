@@ -21,6 +21,8 @@ const base: Profile = {
   priorities: [],
   appliances: ['stove', 'oven', 'air_fryer', 'microwave'],
   days: [0, 1, 2, 3, 4, 5, 6],
+  meals: ['dinner'],
+  reminder: { on: false, day: 6, time: '17:00' },
   units: 'auto',
 };
 const ctx = { country: 'US' as const, storeId: 'walmart' };
@@ -49,6 +51,7 @@ function randomProfile(seed: number): Profile {
     ),
     appliances: appliances.length ? appliances : ['stove'],
     days: pick([0, 1, 2, 3, 4, 5, 6], 0.85),
+    meals: r() < 0.3 ? ['lunch', 'dinner'] : ['dinner'],
   };
 }
 
@@ -65,8 +68,10 @@ describe('planner', () => {
         expect(m.servings).toBe(profile.household);
       }
       const eligible = RECIPES.filter((r) => isEligible(r, profile)).length;
-      expect(res.meals.length + res.unfilled.length).toBe(profile.days.length);
-      expect(res.meals.length).toBe(Math.min(profile.days.length, eligible));
+      const slots = profile.days.length * profile.meals.length;
+      expect(res.meals.length + res.unfilled.length).toBe(slots);
+      if (profile.meals.length === 1) expect(res.meals.length).toBe(Math.min(slots, eligible));
+      for (const m of res.meals) if (m.slot === 'lunch') expect(RECIPE_BY_ID[m.recipeId].lunch, `seed ${seed} lunch`).toBe(true);
     }
   });
 
@@ -122,7 +127,7 @@ describe('planner', () => {
   it('offers swap options that are new, eligible and budget-aware', () => {
     const profile = { ...base, diets: ['vegetarian' as const] };
     const res = generateWeek({ profile, recipes: RECIPES, seed: 11, ctx });
-    const opts = swapOptions({ profile, recipes: RECIPES, seed: 99, ctx, meals: res.meals, day: 3 });
+    const opts = swapOptions({ profile, recipes: RECIPES, seed: 99, ctx, meals: res.meals, key: { day: 3, slot: 'dinner' } });
     expect(opts.length).toBeGreaterThan(3);
     for (const o of opts) {
       expect(res.meals.some((m) => m.recipeId === o.recipe.id)).toBe(false);
@@ -131,6 +136,34 @@ describe('planner', () => {
     // budget-fitting options come first
     const firstMiss = opts.findIndex((o) => !o.fitsBudget);
     if (firstMiss >= 0) expect(opts.slice(firstMiss).every((o) => !o.fitsBudget)).toBe(true);
+  });
+});
+
+describe('lunch and dinner', () => {
+  const profile: Profile = { ...base, meals: ['lunch', 'dinner'], weeklyBudget: 135 };
+
+  it('plans 14 meals with light, quick lunches and no repeats', () => {
+    const res = generateWeek({ profile, recipes: RECIPES, seed: 4, ctx });
+    expect(res.meals).toHaveLength(14);
+    expect(new Set(res.meals.map((m) => m.recipeId)).size).toBe(14);
+    const lunches = res.meals.filter((m) => m.slot === 'lunch');
+    expect(lunches).toHaveLength(7);
+    for (const m of lunches) expect(RECIPE_BY_ID[m.recipeId].lunch).toBe(true);
+    expect(res.total).toBeLessThanOrEqual(135.01);
+  });
+
+  it('has enough lunch recipes for every diet', () => {
+    for (const d of DIETS.map((x) => x.id)) {
+      const n = RECIPES.filter((r) => r.lunch && r.diets.includes(d)).length;
+      expect(n, `${d} lunches`).toBeGreaterThanOrEqual(7);
+    }
+  });
+
+  it('swaps a lunch only for lunch-worthy recipes', () => {
+    const res = generateWeek({ profile, recipes: RECIPES, seed: 9, ctx });
+    const opts = swapOptions({ profile, recipes: RECIPES, seed: 1, ctx, meals: res.meals, key: { day: 2, slot: 'lunch' } });
+    expect(opts.length).toBeGreaterThan(0);
+    for (const o of opts) expect(o.recipe.lunch).toBe(true);
   });
 });
 
@@ -184,5 +217,20 @@ describe('units', () => {
     expect(formatBuyQty(ING.onion, 160, 'US')).toBe('1');
     expect(formatBuyQty(ING.chickpeas, 480, 'US')).toBe('2 cans');
     expect(formatBuyQty(ING.chicken_stock, 400, 'US')).toBe('14 fl oz');
+  });
+});
+
+describe('weekly reminder', () => {
+  it('finds the next occurrence and builds a recurring calendar event', async () => {
+    const { nextOccurrence, reminderIcs } = await import('./reminder');
+    const now = new Date(2026, 9, 4, 12, 0); // Sunday Oct 4 2026, noon
+    const r = { on: true, day: 6, time: '17:00' };
+    expect(nextOccurrence(r, now)).toEqual(new Date(2026, 9, 4, 17, 0));
+    expect(nextOccurrence({ ...r, time: '09:00' }, now)).toEqual(new Date(2026, 9, 11, 9, 0));
+    expect(nextOccurrence({ ...r, day: 0 }, now)).toEqual(new Date(2026, 9, 5, 17, 0));
+    const ics = reminderIcs(r, 'https://example.com/app/', now);
+    expect(ics).toContain('RRULE:FREQ=WEEKLY;BYDAY=SU');
+    expect(ics).toContain('DTSTART:20261004T170000');
+    expect(ics).toContain('BEGIN:VALARM');
   });
 });

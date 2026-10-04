@@ -56,7 +56,7 @@ export function Planning() {
     `Checking prices at ${store}`,
     'Matching your taste & kitchen',
     `Balancing your ${money(profile.weeklyBudget, profile.country, true)} budget`,
-    `Picking ${profile.days.length} dinners`,
+    `Picking ${profile.days.length * profile.meals.length} ${profile.meals.length > 1 ? 'meals' : 'dinners'}`,
   ];
 
   useEffect(() => {

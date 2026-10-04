@@ -1,17 +1,52 @@
-import { useRef } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ingName } from '../data/ingredients';
-import { STORE_BY_ID, COUNTRIES } from '../data/stores';
+import { STORE_BY_ID } from '../data/stores';
 import { ALLERGENS, APPLIANCES, DAY_SHORT, DIETS, PRIORITIES } from '../data/taxonomy';
 import { money } from '../engine/pricing';
+import { reminderLabel } from '../engine/reminder';
 import { useApp } from '../state/store';
 import { Icon, type IconName } from '../ui/Icon';
 import { useToast } from '../ui/primitives';
+import { PageHead } from '../ui/RecipeRow';
 import { StepHeader } from './onboarding/Onboarding';
-import { STEPS } from './onboarding/steps';
+import { SECTIONS } from './onboarding/steps';
 
-const label = <T extends string>(list: { id: T; label: string }[], ids: T[]) =>
-  ids.map((id) => list.find((x) => x.id === id)?.label ?? id).join(', ');
+/** "High protein, Family favorites +1" — first two, then a count. */
+function summarize(items: string[], none: string): string {
+  if (!items.length) return none;
+  return items.length > 2 ? `${items.slice(0, 2).join(', ')} +${items.length - 2}` : items.join(', ');
+}
+
+const labels = <T extends string>(list: { id: T; label: string }[], ids: T[]) => ids.map((id) => list.find((x) => x.id === id)?.label ?? id);
+
+const FEEDBACK_URL = 'https://github.com/JRodDvlpr/Whipp_clone/issues/new?title=Feedback%3A%20';
+
+function Row({ to, icon, label, value, onClick }: { to?: string; icon: IconName; label?: string; value: ReactNode; onClick?: () => void }) {
+  const body = (
+    <>
+      <span className="icon-tile">
+        <Icon name={icon} size={22} />
+      </span>
+      <span className="grow">
+        {label && <span className="row-label">{label}</span>}
+        <span className={label ? 'row-value' : 'row-value solo'}>{value}</span>
+      </span>
+      <Icon name="chevronRight" size={20} className="faint" />
+    </>
+  );
+  if (to)
+    return (
+      <Link to={to} className="pref-row">
+        {body}
+      </Link>
+    );
+  return (
+    <button className="pref-row" onClick={onClick}>
+      {body}
+    </button>
+  );
+}
 
 export function Profile() {
   const s = useApp();
@@ -19,38 +54,12 @@ export function Profile() {
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const p = s.profile;
-  const store = STORE_BY_ID[p.storeId];
-  const country = COUNTRIES.find((c) => c.id === p.country);
-
-  const rows: { section: string; icon: IconName; title: string; value: string }[] = [
-    { section: 'store', icon: 'store', title: 'Supermarket', value: `${store?.name ?? '—'} · ${country?.flag} ${country?.label}` },
-    {
-      section: 'budget',
-      icon: 'wallet',
-      title: 'Weekly budget',
-      value: `${money(p.weeklyBudget, p.country, true)} · ${p.household} ${p.household === 1 ? 'person' : 'people'}${p.kidFriendly ? ' · kid-friendly' : ''}`,
-    },
-    {
-      section: 'diet',
-      icon: 'leaf',
-      title: 'Diet & allergies',
-      value: [label(DIETS, p.diets), label(ALLERGENS, p.allergens)].filter(Boolean).join(' · ') || 'No restrictions',
-    },
-    { section: 'priorities', icon: 'sparkle', title: 'Priorities', value: label(PRIORITIES, p.priorities) || 'Anything goes' },
-    { section: 'kitchen', icon: 'chef', title: 'Kitchen', value: label(APPLIANCES, p.appliances) || 'None selected' },
-    { section: 'dislikes', icon: 'ban', title: 'Foods you can’t stand', value: p.dislikes.map((d) => ingName(d, p.country)).join(', ') || 'None' },
-    {
-      section: 'days',
-      icon: 'calendar',
-      title: 'Dinner nights',
-      value: p.days.length === 7 ? 'Every night' : p.days.map((d) => DAY_SHORT[d]).join(', '),
-    },
-  ];
+  const appUrl = window.location.href.split('#')[0];
 
   const exportData = () => {
     const data = {
       app: 'whipp-clone',
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       profile: s.profile,
       plans: s.plans,
@@ -81,33 +90,85 @@ export function Profile() {
       toast.show('That doesn’t look like a Whipp backup');
     }
   };
+  const share = async () => {
+    const text = 'Whipp plans my week of dinners around my budget and my store, with the grocery list done.';
+    try {
+      if (navigator.share) await navigator.share({ title: 'Whipp', text, url: appUrl });
+      else {
+        await navigator.clipboard.writeText(`${text} ${appUrl}`);
+        toast.show('Link copied');
+      }
+    } catch {
+      /* cancelled */
+    }
+  };
+
+  const cookingDays =
+    p.days.length === 7 ? 'Every day' : p.days.length === 5 && p.days.every((d) => d < 5) ? 'Weekdays' : p.days.map((d) => DAY_SHORT[d]).join(', ');
+  const diet = [...labels(DIETS, p.diets), ...labels(ALLERGENS, p.allergens).map((a) => `No ${a.toLowerCase()}`)];
 
   return (
-    <div className="screen">
-      <div className="row" style={{ gap: 14, marginTop: 8 }}>
-        <div className="icon-tile" style={{ borderRadius: 999, width: 60, height: 60 }}>
-          <Icon name="user" size={28} />
+    <div className="screen flush-top">
+      <PageHead title="Profile" />
+
+      <div className="card feedback-card">
+        <div className="row" style={{ gap: 16 }}>
+          <span className="icon-tile">
+            <Icon name="chat" size={22} />
+          </span>
+          <b style={{ fontSize: 20 }}>Help shape Whipp</b>
         </div>
-        <div>
-          <h1 className="title-lg">Your profile</h1>
-          <p className="faint">New plans use these settings automatically.</p>
-        </div>
+        <p className="muted" style={{ margin: '14px 0 18px', fontSize: 16.5 }}>
+          Let us know how to serve you best. We read every message.
+        </p>
+        <a className="btn btn-lime btn-block" href={FEEDBACK_URL} target="_blank" rel="noreferrer">
+          Send feedback
+        </a>
       </div>
 
       <div className="eyebrow section-title">Preferences</div>
-      <div className="list-card">
-        {rows.map((r) => (
-          <Link key={r.section} to={`/profile/edit/${r.section}`} className="pref-row">
-            <span className="icon-tile sm soft">
-              <Icon name={r.icon} size={17} />
-            </span>
-            <span className="grow">
-              <b>{r.title}</b>
-              <small>{r.value}</small>
-            </span>
-            <Icon name="chevronRight" size={18} />
-          </Link>
-        ))}
+      <div className="list-card rows">
+        <Row to="/profile/edit/store" icon="store" label="Store" value={STORE_BY_ID[p.storeId]?.name ?? '—'} />
+        <Row to="/profile/edit/meals" icon="plate" label="Meals per day" value={p.meals.length > 1 ? 'Lunch & dinner' : 'Just dinner'} />
+        <Row to="/profile/edit/days" icon="calendar" label="Cooking days" value={cookingDays} />
+        <Row
+          to="/profile/edit/budget"
+          icon="coins"
+          label="Budget & household"
+          value={`${money(p.weeklyBudget, p.country, true)} · ${p.household} ${p.household === 1 ? 'person' : 'people'}`}
+        />
+        <Row to="/profile/edit/priorities" icon="heart" label="Priorities" value={summarize(labels(PRIORITIES, p.priorities), 'Anything goes')} />
+        <Row to="/profile/edit/kitchen" icon="oven" label="Kitchen equipment" value={summarize(labels(APPLIANCES, p.appliances), 'None selected')} />
+        <Row to="/profile/edit/diet" icon="leaf" label="Dietary needs" value={summarize(diet, 'No restrictions')} />
+        <Row
+          to="/profile/edit/dislikes"
+          icon="ban"
+          label="Dislikes"
+          value={summarize(
+            p.dislikes.map((d) => ingName(d, p.country)),
+            'None',
+          )}
+        />
+      </div>
+      <p className="faint" style={{ margin: '12px 4px 0', fontSize: 15 }}>
+        Changes apply from your next weekly plan.
+      </p>
+
+      <div className="eyebrow section-title">Reminders</div>
+      <div className="list-card rows">
+        <Row to="/profile/edit/reminder" icon="bell" label="Weekly reminder" value={p.reminder.on ? reminderLabel(p.reminder) : 'Off'} />
+      </div>
+
+      <div className="eyebrow section-title">Spread the word</div>
+      <div className="list-card rows">
+        <Row icon="share" value="Share Whipp" onClick={share} />
+      </div>
+
+      <div className="eyebrow section-title">Support & legal</div>
+      <div className="list-card rows">
+        <Row to="/info/help" icon="help" value="Get help" />
+        <Row to="/info/privacy" icon="shield" value="Privacy policy" />
+        <Row to="/info/terms" icon="file" value="Terms of use" />
       </div>
 
       <div className="eyebrow section-title">Units</div>
@@ -120,58 +181,27 @@ export function Profile() {
       </div>
 
       <div className="eyebrow section-title">Your data</div>
-      <div className="list-card">
-        <button className="pref-row" onClick={exportData}>
-          <span className="icon-tile sm soft">
-            <Icon name="download" size={17} />
-          </span>
-          <span className="grow">
-            <b>Back up my data</b>
-            <small>Save plans, favorites & settings to a file</small>
-          </span>
-        </button>
-        <button className="pref-row" onClick={() => fileRef.current?.click()}>
-          <span className="icon-tile sm soft">
-            <Icon name="upload" size={17} />
-          </span>
-          <span className="grow">
-            <b>Restore from backup</b>
-            <small>Load a backup file</small>
-          </span>
-        </button>
-        <button
-          className="pref-row"
+      <div className="list-card rows">
+        <Row icon="download" value="Back up my data" onClick={exportData} />
+        <Row icon="upload" value="Restore from backup" onClick={() => fileRef.current?.click()} />
+        <Row
+          icon="trash"
+          value={<span style={{ color: 'var(--danger)' }}>Reset all data</span>}
           onClick={() => {
             if (window.confirm('Reset everything? This deletes your plans, favorites and settings on this device.')) {
               s.reset();
               nav('/welcome', { replace: true });
             }
           }}
-        >
-          <span className="icon-tile sm" style={{ background: '#fde2d6' }}>
-            <Icon name="trash" size={17} />
-          </span>
-          <span className="grow">
-            <b style={{ color: 'var(--danger)' }}>Reset all data</b>
-            <small>Start over with onboarding</small>
-          </span>
-        </button>
+        />
       </div>
       <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} />
 
-      <div className="eyebrow section-title">About</div>
-      <div className="card pad" style={{ fontSize: 14.5 }}>
-        <p className="muted">
-          Your plans, preferences and recipes stay on this device — there’s no account and nothing is uploaded. Grocery totals are a close estimate,
-          not an exact receipt; tap any price on your list to use your store’s real price. Nutrition is a helpful guide, not medical advice.
-        </p>
-        <p className="faint" style={{ marginTop: 10, fontSize: 13 }}>
-          Support ID · {s.supportId}
-        </p>
-        <p className="faint" style={{ fontSize: 13 }}>
-          Dish photos from TheMealDB.
-        </p>
-      </div>
+      <p className="faint" style={{ textAlign: 'center', fontSize: 13, margin: '24px 0 0' }}>
+        Support ID · {s.supportId}
+        <br />
+        Dish photos from TheMealDB
+      </p>
       {toast.node}
     </div>
   );
@@ -182,7 +212,7 @@ export function ProfileEdit() {
   const { section = '' } = useParams();
   const nav = useNavigate();
   const profile = useApp((s) => s.profile);
-  const def = STEPS.find((x) => x.id === section);
+  const def = SECTIONS[section];
   if (!def) return null;
   const blocked = def.block?.(profile) ?? null;
   return (

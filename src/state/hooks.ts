@@ -3,6 +3,7 @@ import { RECIPE_BY_ID } from '../data/recipes';
 import { STORE_BY_ID } from '../data/stores';
 import { mealCost, type PriceContext } from '../engine/cost';
 import { buildList } from '../engine/groceryList';
+import { keyId, slotOf } from '../engine/slots';
 import { money } from '../engine/pricing';
 import type { Nutrition, WeekPlan } from '../types';
 import { useApp } from './store';
@@ -46,7 +47,8 @@ export interface WeekSummary {
   storeName: string;
   avg: Nutrition | null;
   macroPct: { protein: number; carbs: number; fat: number } | null;
-  mealCosts: Record<number, number>;
+  /** Keyed by `${day}:${slot}`. */
+  mealCosts: Record<string, number>;
 }
 
 export function useWeekSummary(plan?: WeekPlan): WeekSummary | null {
@@ -54,13 +56,13 @@ export function useWeekSummary(plan?: WeekPlan): WeekSummary | null {
   const units = useApp((s) => s.profile.units);
   return useMemo(() => {
     if (!plan) return null;
-    const mealCosts: Record<number, number> = {};
+    const mealCosts: Record<string, number> = {};
     let total = 0;
     const sum = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
     let n = 0;
     for (const m of plan.meals) {
       const c = mealCost(m, RECIPE_BY_ID, ctx);
-      mealCosts[m.day] = c;
+      mealCosts[keyId({ day: m.day, slot: slotOf(m) })] = c;
       total += c;
       const r = RECIPE_BY_ID[m.recipeId];
       if (r) {

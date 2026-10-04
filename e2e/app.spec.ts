@@ -5,6 +5,15 @@ test.beforeEach(async ({ page }) => {
   await page.route(/themealdb\.com/, (r) => r.abort());
 });
 
+/** Press and hold a meal card — Whipp's way to swap. */
+async function longPress(page: Page, index = 0) {
+  const box = (await page.locator('.meal-card').nth(index).boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(700);
+  await page.mouse.up();
+}
+
 async function onboard(page: Page) {
   await page.goto('/');
   await page.getByRole('button', { name: /Get started/ }).click();
@@ -14,8 +23,8 @@ async function onboard(page: Page) {
   await page.getByRole('button', { name: /^Continue/ }).click();
   await page.getByRole('button', { name: 'Microwave', exact: true }).last().click();
   await page.getByRole('button', { name: /^Continue/ }).click();
-  await page.getByRole('button', { name: /Mushrooms/ }).click();
-  await page.getByRole('button', { name: /^Continue/ }).click();
+  await page.getByRole('button', { name: /^Continue/ }).click(); // cooking days
+  await page.getByRole('button', { name: /Mushrooms/ }).click(); // things to avoid
   await page.getByRole('button', { name: /^Continue/ }).click();
   await expect(page.locator('.plan-head')).toBeVisible({ timeout: 10_000 });
 }
@@ -32,14 +41,14 @@ test('onboarding plans a full week that survives a reload', async ({ page }) => 
 test('swap, redo and skip update the week', async ({ page }) => {
   await onboard(page);
   const first = await page.locator('.meal-card h3').first().textContent();
-  await page.locator('.meal-card .swap').first().click();
+  await longPress(page, 0);
   const option = page.getByRole('dialog').locator('.meal-card').first();
   const picked = await option.locator('h3').textContent();
   await option.click();
   await expect(page.locator('.meal-card h3').first()).toHaveText(picked!);
   expect(picked).not.toBe(first);
 
-  await page.locator('.meal-card .swap').first().click();
+  await longPress(page, 0);
   await page.getByRole('button', { name: /Skip this night/ }).click();
   await expect(page.locator('.meal-card')).toHaveCount(6);
   await expect(page.getByRole('button', { name: /Add a dinner/ })).toBeVisible();
@@ -77,7 +86,7 @@ test('recipe: favorite, scale and cook mode', async ({ page }) => {
   await page.getByRole('button', { name: /Next step/ }).click();
   await expect(page.getByText(/Step 2 of/)).toBeVisible();
   await page.goto('/#/favorites');
-  await expect(page.locator('.rcard')).toHaveCount(1);
+  await expect(page.locator('.meal-card')).toHaveCount(1);
 });
 
 test('profile changes flow into the next plan and reset returns to welcome', async ({ page }) => {
@@ -93,4 +102,33 @@ test('profile changes flow into the next plan and reset returns to welcome', asy
   page.once('dialog', (d) => d.accept());
   await page.getByRole('button', { name: /Reset all data/ }).click();
   await expect(page.getByRole('button', { name: /Get started/ })).toBeVisible();
+});
+
+test('lunch & dinner plans two meals a day', async ({ page }) => {
+  await onboard(page);
+  await page.goto('/#/profile/edit/meals');
+  await page.getByRole('button', { name: /Lunch & dinner/ }).click();
+  await page.getByRole('button', { name: 'Done' }).click();
+  await page.goto('/#/plan');
+  await page.getByRole('button', { name: /Redo/ }).click();
+  await expect(page.locator('.meal-card')).toHaveCount(14);
+  await expect(page.locator('.slot-label', { hasText: 'lunch' })).toHaveCount(7);
+  await page.goto('/#/profile');
+  await expect(page.getByText('Lunch & dinner')).toBeVisible();
+});
+
+test('discover filters, cuisines and favorites', async ({ page }) => {
+  await onboard(page);
+  await page.goto('/#/discover');
+  await expect(page.getByText('Explore by cuisine')).toBeVisible();
+  const all = await page.locator('.meal-card').count();
+  await page.getByRole('button', { name: 'Veggie & vegan' }).click();
+  const veg = await page.locator('.meal-card').count();
+  expect(veg).toBeGreaterThan(10);
+  expect(veg).toBeLessThan(all);
+  await page.getByRole('button', { name: 'Veggie & vegan' }).click();
+  await page.locator('.cuisine-card', { hasText: 'Italian' }).click();
+  await expect(page.getByRole('button', { name: /Clear Italian/ })).toBeVisible();
+  await page.goto('/#/favorites');
+  await expect(page.getByText('No favorites yet')).toBeVisible();
 });

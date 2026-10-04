@@ -17,11 +17,11 @@ Screenshots were checked with Playwright at iPhone 15 size (393×852) and iPad s
 | 7 steps, segmented "n/7" progress bar, back button, lime "Continue ›" | Same | ✅ |
 | 1. "Where do you *shop?*": grid of store logos, check badge, "Prices of meal plans adapt to your choice." | Same layout, copy and selected state. Stores are shown as brand-coloured name tiles, not logos. A country switch is added (US/UK/CA/AU). | ✅ / ➖ no logos (trademarks) |
 | 2. "Set your *budget*": big serif number with lime glow, slider $25–$135 (£25–£150), "Cooking for" stepper, "Show kid-friendly dinners" toggle | Same | ✅ |
-| 3. Unknown (probably diet) | "Any dietary *needs?*": diet chips and allergy chips | 🔶 |
+| 3. Unknown | "Which meals *should we plan?*": **Just dinner / Lunch & dinner**. Whipp's Profile shows a "Meals per day" setting, so this is likely the step. | 🔶 |
 | 4. "What are you *into?*": 9 priority chips with emoji and ⊕/⊗ | Same chips, labels and states. "Gut friendly" is included. | ✅ |
 | 5. "What's in your *kitchen?*": isometric kitchen, tap appliances (Stove/Hob, Oven, Air fryer, Microwave, Rice cooker), lime glow and labels | Hand-drawn isometric SVG kitchen. Each appliance can be tapped and gets a lime glow and label. Chips underneath for accessibility. | ✅ (illustration is simpler than Whipp's 3D render) |
-| 6. Unknown (probably allergies/dislikes) | "Anything you *can't stand?*": ingredient search plus common dislikes | 🔶 |
-| 7. Unknown | "Which nights *need dinner?*": day picker plus a count of matching recipes | 🔶 |
+| 6. Unknown | "Which days do *you cook?*" (Whipp Profile: "Cooking days") | 🔶 |
+| 7. Unknown | "Anything to *avoid?*": diets, allergies and dislikes (Whipp Profile: "Dietary needs", "Dislikes") | 🔶 |
 | "Whipping up your week" | Animated loader with progress ticks | 🔶 |
 | Paywall (Superwall) | None. Everything is unlocked. | ➖ personal use |
 
@@ -35,7 +35,9 @@ Screenshots were checked with Playwright at iPhone 15 size (393×852) and iPad s
 | Lime "Grocery list" and white "Redo" | Same. Redo keeps any meals you've locked. | ✅ |
 | Day sections in serif with a muted date and a lime TODAY badge | Same | ✅ |
 | Meal card: photo, tag chips, serif title, description, "Serves 2 · 25 min", "$5.33 pp" | Same | ✅ |
-| Swap a meal | ⇄ button opens a swap sheet with 6 ranked alternatives showing the price change, "More ideas", "Keep on Redo" (lock) and "Skip this night" | 🔶 |
+| Swap a meal (Whipp's cards have no swap button) | Press and hold a card, or tap Swap on the recipe. The swap sheet shows 6 ranked alternatives with the price change, "More ideas", "Keep on Redo" and "Skip". | 🔶 |
+| Headings in a bold sans font ("This week", day names and numbers). Day strip in its own band, highlighted day follows your scroll, lime dot on today, back arrow greyed on the current week | Same (matched to your Plan screenshot) | ✅ |
+| Meals per day: Just dinner / Lunch & dinner | Lunch + dinner plans 14 meals with LUNCH/DINNER labels. Lunches come only from quick, lighter recipes. | ✅ |
 | Remove an ingredient you don't like | Tap an ingredient on the recipe: "Leave out of this meal" or "Never show me this again". Cost and list update. | 🔶 |
 | Floating tab bar: Plan · Discover · Favorites · Profile | Same | ✅ |
 
@@ -76,9 +78,9 @@ Screenshots were checked with Playwright at iPhone 15 size (393×852) and iPad s
 
 | Whipp | Clone | Status |
 |---|---|---|
-| Discover (full recipe library) | Search, filter chips, a "matches my diet & kitchen" toggle, collections (Quick wins, Budget heroes, High protein, Comfort classics, Plant-forward), grid | 🔶 |
-| Favorites | Grid of ♥ recipes. Favorites get a small boost in planning. | 🔶 |
-| Profile: edit store, budget, household, priorities, diet, dislikes, kitchen. Support ID, feedback, reset. | All of these, plus units, backup/restore and dinner nights. Each edit reuses the onboarding screen. | 🔶 |
+| Discover: sticky header, search "Search meals, cuisines, tags", pills (Family friendly · Quick meal · Light · High protein · Veggie & vegan · One pan · Under $…), EXPLORE BY CUISINE photo cards, ALL MEALS list | Same (matched to your screenshots). The last pill's exact limit is a guess (Under $3 / £2.50). | ✅ |
+| My favorites: heart-tile empty state "No favorites yet", list of meal cards | Same (matched). Favorites get a small boost in planning. | ✅ |
+| Profile: Help shape Whipp → Send feedback. PREFERENCES (Store, Meals per day, Cooking days, Budget & household, Priorities, Kitchen equipment, Dietary needs, Dislikes), "Changes apply from your next weekly plan." REMINDERS: Weekly reminder. SPREAD THE WORD: Rate / Share. SUPPORT & LEGAL: Get help, Privacy, Terms, Manage subscription | Same layout. Feedback opens a GitHub issue. The weekly reminder adds a repeating calendar alert and a nudge in the app. No Rate or Manage subscription, because there's no App Store listing or paywall. Units and backup/restore are extra. | ✅ / ➖ |
 | Plan unlimited weeks ahead, revisit past weeks | Same | ✅ |
 | Budget cap: plans "land under it" | The planner is budget-aware. Property tests check it never goes over when a fitting week exists, across 300 random profiles. | ✅ |
 | Diet, allergies and dislikes respected "automatically" | Hard filters. Diet labels and allergens are computed from the ingredients. Tested. | ✅ |
@@ -92,13 +94,7 @@ Screenshots were checked with Playwright at iPhone 15 size (393×852) and iPad s
 
 ## Known gaps
 
-1. **Unseen screens.** These are built from Whipp's own copy and design language, not from screenshots:
-   - onboarding steps 3, 6 and 7
-   - Discover, Favorites and Profile
-   - the swap UI
-   - cook mode
-
-   Screenshots from the real app would let me match them exactly.
+1. **Still unseen:** onboarding steps 3, 6 and 7, how Whipp triggers a swap, cook mode, and the grocery list and recipe screens on the current build. Screenshots of these would let me match them exactly.
 2. **Library content.** 310 original recipes (Whipp: "300+"). These are not Whipp's own recipes, which aren't public.
 3. **Prices.** They are estimates of shelf prices. Tap any price on your list to set the real price at your store.
 4. **Photos.** Recipes whose dish isn't on TheMealDB show an illustrated plate. You can add your own photos later.

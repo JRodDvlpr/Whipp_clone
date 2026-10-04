@@ -66,7 +66,14 @@ await shot('10-plan');
 await page.evaluate(() => window.scrollTo(0, 600));
 await shot('11-plan-scrolled');
 await page.evaluate(() => window.scrollTo(0, 0));
-await page.locator('.meal-card .swap').first().click();
+{
+  // Press and hold the first meal card to open the swap sheet.
+  const box = await page.locator('.meal-card').first().boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(700);
+  await page.mouse.up();
+}
 await shot('12-swap');
 await page.keyboard.press('Escape');
 await page.getByRole('button', { name: /Grocery list/ }).click();
