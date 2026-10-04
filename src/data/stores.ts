@@ -1,0 +1,69 @@
+import type { Country, Store } from '../types';
+
+// Price index is relative to the country's base prices in ingredients.ts
+// (US base = Walmart shelf prices, UK base = Tesco, CA base = Walmart.ca, AU base = Woolworths).
+// These are estimates — like Whipp, totals are "a close estimate, not an exact receipt".
+export const STORES: Store[] = [
+  // United States
+  { id: 'walmart', name: 'Walmart', country: 'US', color: '#0071CE', index: 1.0, home: 'https://www.walmart.com', search: 'https://www.walmart.com/search?q={q}' },
+  { id: 'kroger', name: 'Kroger', country: 'US', color: '#134B97', index: 1.07, home: 'https://www.kroger.com', search: 'https://www.kroger.com/search?query={q}' },
+  { id: 'target', name: 'Target', country: 'US', color: '#CC0000', index: 1.08, home: 'https://www.target.com', search: 'https://www.target.com/s?searchTerm={q}' },
+  { id: 'aldi_us', name: 'Aldi', country: 'US', color: '#00005F', index: 0.88, home: 'https://www.aldi.us', search: 'https://www.aldi.us/results?q={q}' },
+  { id: 'publix', name: 'Publix', country: 'US', color: '#3B7D23', index: 1.18, home: 'https://www.publix.com', search: 'https://www.publix.com/search?searchTerm={q}' },
+  { id: 'safeway', name: 'Safeway', country: 'US', color: '#E21A2C', index: 1.16, home: 'https://www.safeway.com', search: 'https://www.safeway.com/shop/search-results.html?q={q}' },
+  { id: 'wegmans', name: 'Wegmans', country: 'US', color: '#1D1D1B', index: 1.08, home: 'https://www.wegmans.com', search: 'https://shop.wegmans.com/search?search_term={q}' },
+  { id: 'trader_joes', name: "Trader Joe's", country: 'US', color: '#C8102E', index: 1.0, home: 'https://www.traderjoes.com', search: 'https://www.traderjoes.com/home/search?q={q}' },
+  { id: 'heb', name: 'H-E-B', country: 'US', color: '#EE3124', index: 0.97, home: 'https://www.heb.com', search: 'https://www.heb.com/search?q={q}' },
+  { id: 'meijer', name: 'Meijer', country: 'US', color: '#D7282F', index: 1.02, home: 'https://www.meijer.com', search: 'https://www.meijer.com/shopping/search.html?text={q}' },
+  { id: 'stop_shop', name: 'Stop & Shop', country: 'US', color: '#E41E26', index: 1.13, home: 'https://stopandshop.com', search: 'https://stopandshop.com/search?searchTerm={q}' },
+  { id: 'food_lion', name: 'Food Lion', country: 'US', color: '#00539B', index: 1.03, home: 'https://www.foodlion.com', search: 'https://www.foodlion.com/search?searchTerm={q}' },
+  { id: 'whole_foods', name: 'Whole Foods', country: 'US', color: '#00674B', index: 1.35, home: 'https://www.wholefoodsmarket.com', search: 'https://www.wholefoodsmarket.com/search?text={q}' },
+  { id: 'costco', name: 'Costco', country: 'US', color: '#005DAA', index: 0.92, home: 'https://www.costco.com', search: 'https://www.costco.com/CatalogSearch?keyword={q}' },
+
+  // United Kingdom
+  { id: 'tesco', name: 'Tesco', country: 'UK', color: '#00539F', index: 1.0, home: 'https://www.tesco.com/groceries', search: 'https://www.tesco.com/groceries/en-GB/search?query={q}' },
+  { id: 'sainsburys', name: "Sainsbury's", country: 'UK', color: '#F06C00', index: 1.04, home: 'https://www.sainsburys.co.uk', search: 'https://www.sainsburys.co.uk/gol-ui/SearchResults/{q}' },
+  { id: 'asda', name: 'Asda', country: 'UK', color: '#5E9C1F', index: 0.95, home: 'https://groceries.asda.com', search: 'https://groceries.asda.com/search/{q}' },
+  { id: 'morrisons', name: 'Morrisons', country: 'UK', color: '#00563F', index: 1.02, home: 'https://groceries.morrisons.com', search: 'https://groceries.morrisons.com/search?entry={q}' },
+  { id: 'aldi_uk', name: 'Aldi', country: 'UK', color: '#001E78', index: 0.85, home: 'https://www.aldi.co.uk', search: 'https://www.aldi.co.uk/results?q={q}' },
+  { id: 'lidl', name: 'Lidl', country: 'UK', color: '#0050AA', index: 0.85, home: 'https://www.lidl.co.uk', search: 'https://www.lidl.co.uk/q/search?q={q}' },
+  { id: 'waitrose', name: 'Waitrose', country: 'UK', color: '#4B7A28', index: 1.22, home: 'https://www.waitrose.com', search: 'https://www.waitrose.com/ecom/shop/search?searchTerm={q}' },
+  { id: 'ms', name: 'M&S', country: 'UK', color: '#1D1D1B', index: 1.3, home: 'https://www.ocado.com', search: 'https://www.ocado.com/search?entry={q}' },
+  { id: 'coop', name: 'Co-op', country: 'UK', color: '#00A1E0', index: 1.12, home: 'https://www.coop.co.uk', search: 'https://shop.coop.co.uk/search?term={q}' },
+
+  // Canada
+  { id: 'walmart_ca', name: 'Walmart', country: 'CA', color: '#0071CE', index: 1.0, home: 'https://www.walmart.ca', search: 'https://www.walmart.ca/search?q={q}' },
+  { id: 'loblaws', name: 'Loblaws', country: 'CA', color: '#E31837', index: 1.12, home: 'https://www.loblaws.ca', search: 'https://www.loblaws.ca/search?search-bar={q}' },
+  { id: 'no_frills', name: 'No Frills', country: 'CA', color: '#E8B000', index: 0.95, home: 'https://www.nofrills.ca', search: 'https://www.nofrills.ca/search?search-bar={q}' },
+  { id: 'superstore', name: 'Superstore', country: 'CA', color: '#D52B1E', index: 1.02, home: 'https://www.realcanadiansuperstore.ca', search: 'https://www.realcanadiansuperstore.ca/search?search-bar={q}' },
+  { id: 'sobeys', name: 'Sobeys', country: 'CA', color: '#00843D', index: 1.12, home: 'https://voila.ca', search: 'https://voila.ca/search?q={q}' },
+  { id: 'metro', name: 'Metro', country: 'CA', color: '#E2001A', index: 1.1, home: 'https://www.metro.ca', search: 'https://www.metro.ca/en/online-grocery/search?filter={q}' },
+  { id: 'costco_ca', name: 'Costco', country: 'CA', color: '#005DAA', index: 0.92, home: 'https://www.costco.ca', search: 'https://www.costco.ca/CatalogSearch?keyword={q}' },
+
+  // Australia
+  { id: 'woolworths', name: 'Woolworths', country: 'AU', color: '#178841', index: 1.0, home: 'https://www.woolworths.com.au', search: 'https://www.woolworths.com.au/shop/search/products?searchTerm={q}' },
+  { id: 'coles', name: 'Coles', country: 'AU', color: '#E01A22', index: 1.0, home: 'https://www.coles.com.au', search: 'https://www.coles.com.au/search/products?q={q}' },
+  { id: 'aldi_au', name: 'Aldi', country: 'AU', color: '#001E78', index: 0.85, home: 'https://www.aldi.com.au', search: 'https://www.aldi.com.au/results?q={q}' },
+  { id: 'iga', name: 'IGA', country: 'AU', color: '#D71920', index: 1.1, home: 'https://www.igashop.com.au', search: 'https://www.igashop.com.au/search?q={q}' },
+];
+
+export const STORE_BY_ID: Record<string, Store> = Object.fromEntries(STORES.map((s) => [s.id, s]));
+
+export const storesFor = (country: Country) => STORES.filter((s) => s.country === country);
+
+export const COUNTRIES: { id: Country; label: string; flag: string; currency: string; locale: string }[] = [
+  { id: 'US', label: 'United States', flag: '🇺🇸', currency: 'USD', locale: 'en-US' },
+  { id: 'UK', label: 'United Kingdom', flag: '🇬🇧', currency: 'GBP', locale: 'en-GB' },
+  { id: 'CA', label: 'Canada', flag: '🇨🇦', currency: 'CAD', locale: 'en-CA' },
+  { id: 'AU', label: 'Australia', flag: '🇦🇺', currency: 'AUD', locale: 'en-AU' },
+];
+
+/** Budget slider range and default per country (Whipp: $25–$135, £25–£150). */
+export const BUDGET: Record<Country, { min: number; max: number; step: number; def: number }> = {
+  US: { min: 25, max: 135, step: 5, def: 80 },
+  UK: { min: 25, max: 150, step: 5, def: 60 },
+  CA: { min: 35, max: 180, step: 5, def: 110 },
+  AU: { min: 40, max: 200, step: 5, def: 120 },
+};
+
+export const storeSearchUrl = (store: Store, q: string) => store.search.replace('{q}', encodeURIComponent(q));
