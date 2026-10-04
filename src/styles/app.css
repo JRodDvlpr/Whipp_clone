@@ -2158,3 +2158,27 @@ p {
   -webkit-user-select: none;
   user-select: none;
 }
+.week-name {
+  font-weight: 800;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+.week-card.dashed {
+  background: var(--card);
+}
+.week-card.dashed .sparkle {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--cream);
+  box-shadow: var(--shadow-card);
+}
+.thumbs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.thumbs > * {
+  width: auto;
+  height: auto;
+  aspect-ratio: 1;
+}

@@ -12,23 +12,28 @@ export function Plans() {
   const plans = useApp((s) => s.plans);
   const planWeek = useApp((s) => s.planWeek);
   const cur = currentWeek();
-  const upcoming = [0, 1, 2].map((n) => addWeeks(cur, n));
+  // Whipp lists the next two weeks; this week lives on the Plan tab.
+  const upcoming = [1, 2].map((n) => addWeeks(cur, n));
   const previous = Object.keys(plans)
-    .filter((w) => w < cur)
+    .filter((w) => w <= cur)
     .sort()
     .reverse();
 
   return (
-    <div className="screen">
-      <div className="row" style={{ gap: 14, marginTop: 4 }}>
-        <button className="icon-btn sq" onClick={() => nav(-1)} aria-label="Back">
-          <Icon name="back" size={22} stroke={2.4} />
-        </button>
-        <div>
-          <div className="eyebrow">Your plans</div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em' }}>My weekly plans</h1>
+    <div className="screen flush-top">
+      <header className="page-head">
+        <div className="inner row" style={{ gap: 14 }}>
+          <button className="icon-btn sq" onClick={() => nav(-1)} aria-label="Back">
+            <Icon name="back" size={22} stroke={2.4} />
+          </button>
+          <div>
+            <div className="eyebrow">Your plans</div>
+            <h1 className="page-title" style={{ fontSize: 32 }}>
+              My weekly plans
+            </h1>
+          </div>
         </div>
-      </div>
+      </header>
 
       <div className="eyebrow section-title">Upcoming</div>
       {upcoming.map((w) =>
@@ -41,7 +46,7 @@ export function Plans() {
                 <Icon name="sparkle" size={18} />
               </span>
               <div className="grow">
-                <div className="title-md">{weekLabel(w)}</div>
+                <div className="week-name">{weekLabel(w)}</div>
                 <div className="faint" style={{ fontSize: 14 }}>
                   {weekRange(w)} · Not planned yet
                 </div>
@@ -79,7 +84,7 @@ function WeekCard({ plan }: { plan: WeekPlan }) {
     <Link to={`/plan?week=${plan.week}`} className="week-card">
       <div className="row between">
         <div>
-          <div className="title-md">{weekRange(plan.week)}</div>
+          <div className="week-name">{weekRange(plan.week)}</div>
           <div className="faint" style={{ fontSize: 14 }}>
             {label !== weekRange(plan.week) ? `${label} · ` : ''}
             {STORE_BY_ID[plan.storeId]?.name}
