@@ -339,6 +339,16 @@ export const INGREDIENTS: CatalogIngredient[] = [
   frozen('edamame', 'Edamame', '🫛', [121, 12, 9, 5, 5], [6.6, 'kg'], [5, 'kg'], { allergens: ['soy'], protein: 'legume' }),
   frozen('mixed_veg', 'Stir-Fry Vegetables', '🥦', [35, 2, 6, 0.3, 2.5], [4.4, 'kg'], [2.5, 'kg']),
 
+  // ── Batch 2 additions ─────────────────────────────────────────────────────
+  veg('arugula', 'Arugula', '🥬', [25, 2.6, 3.7, 0.7, 1.6], [14, 'kg'], [8, 'kg'], { uk: 'Rocket' }),
+  meat('beef_chuck', 'Beef Chuck', '🥩', [190, 19, 0, 12, 0], [13, 'kg'], [10, 'kg'], { uk: 'Braising Steak', animal: 'meat', protein: 'beef' }),
+  dairy('pizza_dough', 'Pizza Dough', '🍕', [250, 7, 48, 3, 2], [4.4, 'kg'], [4, 'kg'], { allergens: ['gluten'] }),
+  cupboard('macaroni', 'Macaroni', '🍝', [371, 13, 75, 1.5, 3.2], [2.2, 'kg'], [1.2, 'kg'], { allergens: ['gluten'], cup: 105 }),
+  cupboard('gnocchi', 'Gnocchi', '🥟', [150, 3.5, 32, 0.5, 1.5], [5.5, 'kg'], [2.6, 'kg'], { allergens: ['gluten'] }),
+  cupboard('green_lentils', 'Green Lentils', '🫘', [352, 25, 63, 1, 11], [3.3, 'kg'], [3, 'kg'], { cup: 190, protein: 'legume' }),
+  cupboard('harissa', 'Harissa Paste', '🌶️', [100, 3, 10, 6, 4], [15, 'kg'], [10, 'kg'], { density: 1.1 }),
+  cupboard('apricots', 'Dried Apricots', '🍑', [241, 3.4, 63, 0.5, 7], [13, 'kg'], [7, 'kg'], { density: 0.6 }),
+
   // ── Pantry essentials (shown as "Pantry", pre-ticked, excluded from totals) ──
   pantry('olive_oil', 'Olive Oil', '🫒', OIL, [9, 'l'], [7, 'l'], { density: 0.92 }),
   pantry('oil', 'Cooking Oil', '🫙', OIL, [4, 'l'], [2, 'l'], { uk: 'Vegetable Oil', density: 0.92 }),
