@@ -1,6 +1,6 @@
 # Whipp clone: build plan
 
-Status: **approved, in progress.**
+Status: **built.** M0–M11 are done; see [`AUDIT.md`](./AUDIT.md) for the row-by-row comparison with Whipp.
 
 Decisions (2026-10-04):
 - Platform: installable web app (PWA).
