@@ -214,7 +214,6 @@ export function KitchenPicker({ value, onToggle, country }: { value: Appliance[]
             return <path d={`M${ax - 2},${ay - 4} q12,2 9,14`} stroke="#2b2f33" strokeWidth={3.4} fill="none" strokeLinecap="round" />;
           })()}
         </g>
-
       </svg>
 
       {APPLIANCES.map((a) => {
