@@ -9,7 +9,6 @@ import { useApp } from '../state/store';
 import { Icon, type IconName } from '../ui/Icon';
 import { useToast } from '../ui/primitives';
 import { PageHead } from '../ui/RecipeRow';
-import { StepHeader } from './onboarding/Onboarding';
 import { SECTIONS } from './onboarding/steps';
 
 /** "High protein, Family favorites +1" — first two, then a count. */
@@ -217,13 +216,17 @@ export function ProfileEdit() {
   const blocked = def.block?.(profile) ?? null;
   return (
     <div className="screen">
-      <div className="ob-top">
-        <button className="icon-btn sq" onClick={() => nav(-1)} aria-label="Back" disabled={!!blocked}>
-          <Icon name="back" size={22} stroke={2.4} />
-        </button>
+      <header className="edit-head">
+        <div className="inner">
+          <button className="icon-btn sq" onClick={() => nav(-1)} aria-label="Back" disabled={!!blocked}>
+            <Icon name="back" size={22} stroke={2.4} />
+          </button>
+          <h1>{def.eyebrow}</h1>
+        </div>
+      </header>
+      <div className={`edit-body ${section === 'kitchen' ? 'centered' : ''}`}>
+        <def.Body />
       </div>
-      <StepHeader eyebrow={def.eyebrow} title={def.title} sub={def.sub} />
-      <def.Body />
       <div className="bottom-bar">
         <div className="inner">
           <button className="btn btn-lime btn-block" onClick={() => nav(-1)} disabled={!!blocked}>

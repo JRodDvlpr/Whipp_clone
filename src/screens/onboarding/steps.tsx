@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { ING, INGREDIENTS, ingName } from '../../data/ingredients';
 import { RECIPES } from '../../data/recipes';
 import { BUDGET, COUNTRIES, storesFor } from '../../data/stores';
-import { ALLERGENS, APPLIANCES, DAY_SHORT, DIETS, PRIORITIES } from '../../data/taxonomy';
+import { ALLERGENS, DAY_SHORT, DIETS, PRIORITIES } from '../../data/taxonomy';
 import { isEligible } from '../../engine/planner';
 import { CURRENCY } from '../../engine/pricing';
 import { useApp } from '../../state/store';
@@ -177,22 +177,12 @@ function PrioritiesBody() {
 function KitchenBody() {
   const profile = useApp((s) => s.profile);
   const setProfile = useApp((s) => s.setProfile);
-  const onToggle = (a: Appliance) => setProfile({ appliances: toggle(profile.appliances, a) });
   return (
-    <>
-      <KitchenPicker value={profile.appliances} onToggle={onToggle} country={profile.country} />
-      <div className="kitchen-legend">
-        {APPLIANCES.map((a) => (
-          <Chip
-            key={a.id}
-            small
-            on={profile.appliances.includes(a.id)}
-            label={profile.country === 'UK' && a.labelUK ? a.labelUK : a.label}
-            onClick={() => onToggle(a.id)}
-          />
-        ))}
-      </div>
-    </>
+    <KitchenPicker
+      value={profile.appliances}
+      onToggle={(a: Appliance) => setProfile({ appliances: toggle(profile.appliances, a) })}
+      country={profile.country}
+    />
   );
 }
 
