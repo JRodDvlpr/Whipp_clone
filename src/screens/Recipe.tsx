@@ -212,7 +212,9 @@ export function Recipe() {
           mode="swap"
           onClose={() => {
             setSwap(false);
-            nav(`/plan?week=${plan.week}`, { replace: true });
+            // Leave the recipe only if the meal on this night actually changed.
+            const now = useApp.getState().plans[plan.week]?.meals.find((m) => m.day === meal.day);
+            if (now?.recipeId !== recipe.id) nav(`/plan?week=${plan.week}`, { replace: true });
           }}
         />
       )}
