@@ -82,8 +82,10 @@ await page.waitForTimeout(1000);
 await shot('15-recipe');
 await page.evaluate(() => window.scrollTo(0, 560));
 await shot('16-recipe-ingredients');
-await page.getByRole('button', { name: 'Preparation' }).click();
-await shot('17-recipe-prep');
+if (!wide) {
+  await page.getByRole('button', { name: 'Preparation' }).click();
+  await shot('17-recipe-prep');
+}
 await page.getByRole('button', { name: /Start cooking/ }).click();
 await shot('18-cook');
 await page.goBack();

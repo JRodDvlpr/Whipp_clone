@@ -1,8 +1,8 @@
-node_modules/
-dist/
-coverage/
-playwright-report/
-test-results/
 *.log
 .DS_Store
+coverage/
+dist/
+node_modules/
+playwright-report/
 shots/
+test-results/

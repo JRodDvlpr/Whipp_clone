@@ -1,0 +1,96 @@
+import { expect, test, type Page } from '@playwright/test';
+
+// Photos come from a third-party host; keep tests hermetic.
+test.beforeEach(async ({ page }) => {
+  await page.route(/themealdb\.com/, (r) => r.abort());
+});
+
+async function onboard(page: Page) {
+  await page.goto('/');
+  await page.getByRole('button', { name: /Get started/ }).click();
+  await page.getByRole('button', { name: 'Kroger' }).click();
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: /^Continue/ }).click();
+  await page.getByRole('button', { name: /High protein/ }).click();
+  await page.getByRole('button', { name: /^Continue/ }).click();
+  await page.getByRole('button', { name: 'Microwave', exact: true }).last().click();
+  await page.getByRole('button', { name: /^Continue/ }).click();
+  await page.getByRole('button', { name: /Mushrooms/ }).click();
+  await page.getByRole('button', { name: /^Continue/ }).click();
+  await page.getByRole('button', { name: /^Continue/ }).click();
+  await expect(page.locator('.plan-head')).toBeVisible({ timeout: 10_000 });
+}
+
+test('onboarding plans a full week that survives a reload', async ({ page }) => {
+  await onboard(page);
+  await expect(page.locator('.meal-card')).toHaveCount(7);
+  await expect(page.locator('.plan-head')).toContainText('Kroger');
+  const titles = await page.locator('.meal-card h3').allTextContents();
+  await page.reload();
+  await expect(page.locator('.meal-card h3')).toHaveText(titles);
+});
+
+test('swap, redo and skip update the week', async ({ page }) => {
+  await onboard(page);
+  const first = await page.locator('.meal-card h3').first().textContent();
+  await page.locator('.meal-card .swap').first().click();
+  const option = page.getByRole('dialog').locator('.meal-card').first();
+  const picked = await option.locator('h3').textContent();
+  await option.click();
+  await expect(page.locator('.meal-card h3').first()).toHaveText(picked!);
+  expect(picked).not.toBe(first);
+
+  await page.locator('.meal-card .swap').first().click();
+  await page.getByRole('button', { name: /Skip this night/ }).click();
+  await expect(page.locator('.meal-card')).toHaveCount(6);
+  await expect(page.getByRole('button', { name: /Add a dinner/ })).toBeVisible();
+
+  const before = await page.locator('.meal-card h3').allTextContents();
+  await page.getByRole('button', { name: /Redo/ }).click();
+  await expect.poll(async () => (await page.locator('.meal-card h3').allTextContents()).join()).not.toBe(before.join());
+});
+
+test('grocery list ticks persist and custom items can be added', async ({ page }) => {
+  await onboard(page);
+  await page.getByRole('button', { name: /Grocery list/ }).click();
+  await expect(page.getByText('Estimated total')).toBeVisible();
+  const firstCheck = page.locator('.item-row:not(.pantry) .check').first();
+  await firstCheck.click();
+  await expect(page.getByText(/^1 of \d+ in the cart$/)).toBeVisible();
+  await page.getByPlaceholder(/Paper towels|Kitchen roll/).fill('Paper towels');
+  await page.getByRole('button', { name: 'Add item' }).click();
+  await expect(page.getByText('Paper towels', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText(/^1 of \d+ in the cart$/)).toBeVisible();
+  await expect(page.getByText('Paper towels', { exact: true })).toBeVisible();
+});
+
+test('recipe: favorite, scale and cook mode', async ({ page }) => {
+  await onboard(page);
+  await page.locator('.meal-card a').first().click();
+  await page.getByRole('button', { name: 'Save to favorites' }).first().click();
+  const pill = page.locator('.price-pill').first();
+  const price = await pill.textContent();
+  await page.getByRole('button', { name: 'More servings' }).click();
+  await expect(pill).not.toHaveText(price!);
+  await page.getByRole('button', { name: /Start cooking/ }).click();
+  await expect(page.getByText(/Step 1 of/)).toBeVisible();
+  await page.getByRole('button', { name: /Next step/ }).click();
+  await expect(page.getByText(/Step 2 of/)).toBeVisible();
+  await page.goto('/#/favorites');
+  await expect(page.locator('.rcard')).toHaveCount(1);
+});
+
+test('profile changes flow into the next plan and reset returns to welcome', async ({ page }) => {
+  await onboard(page);
+  await page.goto('/#/profile/edit/diet');
+  await page.getByRole('button', { name: /Vegan/ }).click();
+  await page.getByRole('button', { name: 'Done' }).click();
+  await page.goto('/#/plan');
+  await page.getByRole('button', { name: /Redo/ }).click();
+  await page.locator('.meal-card a').first().click();
+  await expect(page.locator('.tag', { hasText: 'Vegan' }).first()).toBeVisible();
+  await page.goto('/#/profile');
+  page.once('dialog', (d) => d.accept());
+  await page.getByRole('button', { name: /Reset all data/ }).click();
+  await expect(page.getByRole('button', { name: /Get started/ })).toBeVisible();
+});
