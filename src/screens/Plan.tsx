@@ -29,7 +29,9 @@ export function Plan() {
   const country = plan?.country ?? profile.country;
   const fmt = (n: number) => money(n, country);
 
-  useEffect(() => setSelected(today >= 0 ? today : 0), [week, today]);
+  useEffect(() => {
+    setSelected(today >= 0 ? today : 0);
+  }, [week, today]);
 
   const goWeek = (n: number) => setParams({ week: addWeeks(week, n) }, { replace: true });
   const jump = (day: number) => {

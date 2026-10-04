@@ -340,6 +340,7 @@ export const INGREDIENTS: CatalogIngredient[] = [
   frozen('mixed_veg', 'Stir-Fry Vegetables', '🥦', [35, 2, 6, 0.3, 2.5], [4.4, 'kg'], [2.5, 'kg']),
 
   // ── Batch 2 additions ─────────────────────────────────────────────────────
+  veg('cauliflower', 'Cauliflower', '🥦', [25, 1.9, 5, 0.3, 2], [3.3, 'kg'], [1.4, 'kg']),
   veg('arugula', 'Arugula', '🥬', [25, 2.6, 3.7, 0.7, 1.6], [14, 'kg'], [8, 'kg'], { uk: 'Rocket' }),
   meat('beef_chuck', 'Beef Chuck', '🥩', [190, 19, 0, 12, 0], [13, 'kg'], [10, 'kg'], { uk: 'Braising Steak', animal: 'meat', protein: 'beef' }),
   dairy('pizza_dough', 'Pizza Dough', '🍕', [250, 7, 48, 3, 2], [4.4, 'kg'], [4, 'kg'], { allergens: ['gluten'] }),

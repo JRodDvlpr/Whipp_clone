@@ -1,4 +1,4 @@
-import { Navigate, Outlet, RouterProvider, createHashRouter, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, RouterProvider, createHashRouter, useLocation, useRouteError } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useHydrated } from './state/hooks';
 import { useApp } from './state/store';
@@ -15,7 +15,10 @@ import { Planning, Welcome } from './screens/Welcome';
 
 function ScrollTop() {
   const { pathname } = useLocation();
-  useEffect(() => window.scrollTo(0, 0), [pathname]);
+  // Braces matter: newer browsers return a Promise from scrollTo, which React would treat as a cleanup.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
   return null;
 }
 
@@ -32,6 +35,22 @@ function Gate({ need }: { need: 'onboarded' | 'new' }) {
   );
 }
 
+/** Friendly fallback instead of React Router's developer error page. */
+function ErrorScreen() {
+  const error = useRouteError();
+  console.error(error);
+  return (
+    <div className="loader">
+      <div style={{ fontSize: 56 }}>🍳</div>
+      <h1 className="title-lg">Something went wrong</h1>
+      <p className="muted">Your plans are safe on this device. Reloading usually fixes it.</p>
+      <button className="btn btn-lime" onClick={() => window.location.reload()}>
+        Reload
+      </button>
+    </div>
+  );
+}
+
 function Tabs() {
   return (
     <>
@@ -44,6 +63,7 @@ function Tabs() {
 const router = createHashRouter([
   {
     element: <Gate need="new" />,
+    errorElement: <ErrorScreen />,
     children: [
       { path: '/welcome', element: <Welcome /> },
       { path: '/onboarding/:step', element: <Onboarding /> },
@@ -52,6 +72,7 @@ const router = createHashRouter([
   },
   {
     element: <Gate need="onboarded" />,
+    errorElement: <ErrorScreen />,
     children: [
       {
         element: <Tabs />,
