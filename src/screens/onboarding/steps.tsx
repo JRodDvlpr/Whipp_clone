@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { ING, INGREDIENTS, ingName } from '../../data/ingredients';
 import { RECIPES } from '../../data/recipes';
 import { BUDGET, COUNTRIES, storesFor } from '../../data/stores';
-import { ALLERGENS, DAY_SHORT, DIETS, PRIORITIES } from '../../data/taxonomy';
+import { ALLERGENS, DAY_LONG, DAY_SHORT, DIETS, PRIORITIES } from '../../data/taxonomy';
 import { isEligible } from '../../engine/planner';
 import { CURRENCY } from '../../engine/pricing';
 import { useApp } from '../../state/store';
@@ -255,35 +255,28 @@ function DaysBody() {
   const profile = useApp((s) => s.profile);
   const setProfile = useApp((s) => s.setProfile);
   const matches = RECIPES.filter((r) => isEligible(r, profile)).length;
+  const n = profile.days.length;
   return (
     <>
-      <div className="day-strip" style={{ marginTop: 0 }}>
-        <div className="days">
-          {DAY_SHORT.map((d, i) => (
+      <div className="cook-days">
+        {DAY_LONG.map((d, i) => {
+          const on = profile.days.includes(i);
+          return (
             <button
               key={d}
-              className={`day-pill ${profile.days.includes(i) ? 'on' : ''}`}
+              className={`cook-day ${on ? 'on' : ''}`}
               onClick={() => setProfile({ days: toggle(profile.days, i).sort((a, b) => a - b) })}
-              aria-pressed={profile.days.includes(i)}
+              aria-pressed={on}
+              aria-label={d}
             >
-              <small>{d}</small>
-              <b>{profile.days.includes(i) ? '✓' : '–'}</b>
+              <b>{d[0]}</b>
+              <span className="dot" />
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
-      <div className="setting-card" style={{ marginTop: 22 }}>
-        <div className="row">
-          <div className="icon-tile soft">🍽️</div>
-          <div className="grow">
-            <b style={{ fontSize: 18 }}>
-              {profile.days.length * profile.meals.length} {profile.meals.length > 1 ? 'meals' : 'dinners'} a week
-            </b>
-            <div className="faint">{matches} recipes match your preferences</div>
-          </div>
-        </div>
-      </div>
-      {matches < profile.days.length && (
+      <p className="cook-days-count">{n ? `${n} ${n === 1 ? 'day' : 'days'} a week` : 'No days picked yet'}</p>
+      {n > 0 && matches < n && (
         <div className="notice">
           <Icon name="alert" size={18} />
           Only {matches} recipes match everything you've chosen, so a few nights may stay open. You can loosen a filter any time in Profile.
