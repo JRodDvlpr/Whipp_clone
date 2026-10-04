@@ -84,7 +84,7 @@ Screenshots were checked with Playwright at iPhone 15 size (393×852) and iPad s
 | Diet, allergies and dislikes respected "automatically" | Hard filters. Diet labels and allergens are computed from the ingredients. Tested. | ✅ |
 | Plans around your appliances | Hard filter, with "any one of" alternatives (e.g. oven *or* air fryer) | ✅ |
 | "Never the same week twice" | Recipes from the last 3 weeks are pushed down the ranking. Redo uses a new random seed. | ✅ |
-| 300+ meals | **166** original recipes | ⬜ more batches to reach 300 |
+| 300+ meals | **240** original recipes | ⬜ more batches to reach 300 |
 | US/UK/CA/AU stores, built-in prices | 36 stores. Every ingredient has a US (Walmart) and UK (Tesco) price, plus a price index for each store. CA and AU prices are derived from US prices. | ✅ (CA/AU approximate) |
 | On-device only, no account | IndexedDB, no network calls except dish photos | ✅ |
 | iPad support | Responsive layout matching Whipp's iPad screenshots | ✅ |
@@ -99,6 +99,6 @@ Screenshots were checked with Playwright at iPhone 15 size (393×852) and iPad s
    - cook mode
 
    Screenshots from the real app would let me match them exactly.
-2. **Library size.** There are 166 recipes against Whipp's "300+". More batches can be added with the same validation.
+2. **Library size.** There are 240 recipes against Whipp's "300+". More batches can be added with the same validation.
 3. **Prices.** They are estimates of shelf prices. Tap any price on your list to set the real price at your store.
 4. **Photos.** Recipes whose dish isn't on TheMealDB show an illustrated plate. You can add your own photos later.

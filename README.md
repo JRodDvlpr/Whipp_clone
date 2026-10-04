@@ -51,7 +51,7 @@ To keep a backup of your plans and settings, use **Profile → Back up my data**
   - method, plus a step-by-step **cook mode** with timers that keeps the screen on
   - leave an ingredient out, or ban it forever
 - **Discover:** search, filters and collections. **Favorites:** recipes you've saved with ♥. **Profile:** edit every preference, choose units, back up, restore or reset.
-- **Recipe library:** 166 original dinners. Nutrition, diet labels and allergens are *computed from the ingredients*, so the labels can't be wrong.
+- **Recipe library:** 240 original dinners. Nutrition, diet labels and allergens are *computed from the ingredients*, so the labels can't be wrong.
 - **Prices:** typical shelf prices for each ingredient. The US base is Walmart and the UK base is Tesco. Each store has its own price index.
 
 ## Develop
