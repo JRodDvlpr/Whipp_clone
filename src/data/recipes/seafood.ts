@@ -39,7 +39,10 @@ export const SEAFOOD: RecipeSource[] = [
     time: 20,
     serves: 2,
     tags: ['healthy', 'gut_friendly'],
-    appliances: [['oven', 'air_fryer'], ['stove', 'rice_cooker', 'microwave']],
+    appliances: [
+      ['oven', 'air_fryer'],
+      ['stove', 'rice_cooker', 'microwave'],
+    ],
     art: { emoji: '🍣', hue: 15 },
     ingredients: [
       ['salmon', 2, 'each', 'fillets'],
@@ -58,7 +61,10 @@ export const SEAFOOD: RecipeSource[] = [
       'Heat the oven to 425°F (400°F convection) / 220°C. Line a small baking sheet with foil.',
       'Mix together the white miso paste, honey, soy sauce, sesame oil, grated ginger and garlic in a small bowl until smooth.',
       'Pat the salmon fillets dry with paper towels, place on the lined baking sheet skin-side down, and spoon the glaze generously over the top of each fillet.',
-      { text: 'Roast for 10–12 minutes (or air fry at 400°F / 200°C for 9) until the glaze is caramelised and lightly charred at the edges and the fish flakes easily.', timer: 11 },
+      {
+        text: 'Roast for 10–12 minutes (or air fry at 400°F / 200°C for 9) until the glaze is caramelised and lightly charred at the edges and the fish flakes easily.',
+        timer: 11,
+      },
       { text: 'Meanwhile cook the rice (stovetop, rice cooker or microwave) and steam the halved bok choy for 3 minutes.', timer: 12 },
       'Serve the salmon on the rice with the greens, topped with sliced scallions and sesame seeds.',
     ],
@@ -235,7 +241,10 @@ export const SEAFOOD: RecipeSource[] = [
       ['olive_oil', 2, 'tbsp'],
     ],
     steps: [
-      { text: 'Season the salmon and roast at 400°F / 200°C for 12 minutes, air fry for 9, pan-fry for 6, or microwave covered for 3–4 minutes.', timer: 10 },
+      {
+        text: 'Season the salmon and roast at 400°F / 200°C for 12 minutes, air fry for 9, pan-fry for 6, or microwave covered for 3–4 minutes.',
+        timer: 10,
+      },
       'Whisk the lemon juice, mustard and oil with salt and pepper.',
       'Toss the spinach, sliced cucumber, halved tomatoes and onion with half the dressing.',
       'Top with avocado and flaked salmon, then drizzle over the rest.',
@@ -293,7 +302,10 @@ export const SEAFOOD: RecipeSource[] = [
       ['olive_oil', 2, 'tbsp'],
     ],
     steps: [
-      { text: 'Boil the halved potatoes for 12 minutes, adding the eggs for the last 8 and the beans for the last 3. (Or microwave the potatoes and beans covered with a splash of water for 8 minutes.)', timer: 12 },
+      {
+        text: 'Boil the halved potatoes for 12 minutes, adding the eggs for the last 8 and the beans for the last 3. (Or microwave the potatoes and beans covered with a splash of water for 8 minutes.)',
+        timer: 12,
+      },
       'Cool the eggs in cold water, peel and quarter.',
       'Whisk the mustard, vinegar and oil.',
       'Arrange the lettuce, potatoes, beans, tomatoes, olives, tuna and eggs. Drizzle with dressing.',

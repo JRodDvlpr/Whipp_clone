@@ -4,8 +4,17 @@ import type { Allergen, Diet, Nutrition, Priority, ProteinKind, Recipe, RecipeSo
 import { lineGrams } from './units';
 
 const PROTEIN_WEIGHT: Record<ProteinKind, number> = {
-  chicken: 3, beef: 3, pork: 3, lamb: 3, turkey: 3, fish: 3, shellfish: 3,
-  tofu: 2, cheese: 1.5, egg: 1.2, legume: 1,
+  chicken: 3,
+  beef: 3,
+  pork: 3,
+  lamb: 3,
+  turkey: 3,
+  fish: 3,
+  shellfish: 3,
+  tofu: 2,
+  cheese: 1.5,
+  egg: 1.2,
+  legume: 1,
 };
 
 export function nutritionOf(src: RecipeSource): Nutrition {

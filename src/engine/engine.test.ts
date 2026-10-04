@@ -27,17 +27,26 @@ const ctx = { country: 'US' as const, storeId: 'walmart' };
 
 function randomProfile(seed: number): Profile {
   const r = rng(seed);
-  const pick = <T,>(xs: T[], p: number) => xs.filter(() => r() < p);
+  const pick = <T>(xs: T[], p: number) => xs.filter(() => r() < p);
   const appliances = pick<Appliance>(['stove', 'oven', 'air_fryer', 'microwave', 'rice_cooker'], 0.7);
   return {
     ...base,
     weeklyBudget: 25 + Math.round(r() * 22) * 5,
     household: 1 + Math.floor(r() * 4),
     kidFriendly: r() < 0.2,
-    diets: pick(DIETS.map((d) => d.id), 0.12),
-    allergens: pick(ALLERGENS.map((a) => a.id), 0.1),
+    diets: pick(
+      DIETS.map((d) => d.id),
+      0.12,
+    ),
+    allergens: pick(
+      ALLERGENS.map((a) => a.id),
+      0.1,
+    ),
     dislikes: pick(['cilantro', 'mushrooms', 'eggplant', 'olives', 'shrimp'], 0.25),
-    priorities: pick(PRIORITIES.map((p) => p.id), 0.3),
+    priorities: pick(
+      PRIORITIES.map((p) => p.id),
+      0.3,
+    ),
     appliances: appliances.length ? appliances : ['stove'],
     days: pick([0, 1, 2, 3, 4, 5, 6], 0.85),
   };

@@ -8,7 +8,8 @@ const DERIVED: Record<'CA' | 'AU', { from: 'US' | 'UK'; factor: number }> = {
   AU: { from: 'US', factor: 1.55 },
 };
 
-export type PriceOverrides = Record<string, number>; // `${country}:${ingredientId}` → price per base unit
+/** `${storeId}:${ingredientId}` → the user's own shelf price per base unit (kg / l / each). */
+export type PriceOverrides = Record<string, number>;
 
 function basePrice(ing: CatalogIngredient, country: Country): Price {
   if (country === 'US' || country === 'UK') return ing.price[country];
@@ -23,7 +24,7 @@ function basePrice(ing: CatalogIngredient, country: Country): Price {
 export function unitPrice(ingId: string, country: Country, storeId: string, overrides?: PriceOverrides): Price {
   const ing = ING[ingId];
   const [amount, per] = basePrice(ing, country);
-  const override = overrides?.[`${country}:${ingId}`];
+  const override = overrides?.[`${storeId}:${ingId}`];
   if (override !== undefined) return [override, per];
   const index = STORE_BY_ID[storeId]?.index ?? 1;
   return [amount * index, per];

@@ -94,9 +94,7 @@ export function buildList(
     aisle: a.id,
     label: a.label,
     emoji: a.emoji,
-    items: items
-      .filter((i) => i.aisle === a.id)
-      .sort((x, y) => Number(!!x.custom) - Number(!!y.custom) || x.name.localeCompare(y.name)),
+    items: items.filter((i) => i.aisle === a.id).sort((x, y) => Number(!!x.custom) - Number(!!y.custom) || x.name.localeCompare(y.name)),
   })).filter((g) => g.items.length);
 
   const buy = items.filter((i) => !i.pantry);

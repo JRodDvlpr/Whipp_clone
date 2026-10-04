@@ -127,7 +127,10 @@ export const VEGGIE: RecipeSource[] = [
     ],
     steps: [
       { text: 'Soften the onion in the oil for 6 minutes. Add garlic, ginger, turmeric and curry powder for 1 minute.', timer: 7 },
-      { text: 'Add the rinsed lentils, chopped tomato, coconut milk and 1 1/2 cups water. Simmer for 20 minutes, stirring, until creamy.', timer: 20 },
+      {
+        text: 'Add the rinsed lentils, chopped tomato, coconut milk and 1 1/2 cups water. Simmer for 20 minutes, stirring, until creamy.',
+        timer: 20,
+      },
       { text: 'Cook the rice: boil in 1 1/4 cups water, cover and simmer on low for 12 minutes.', timer: 12 },
       'Stir the spinach into the dhal until wilted, season and finish with lime. Serve with rice.',
     ],

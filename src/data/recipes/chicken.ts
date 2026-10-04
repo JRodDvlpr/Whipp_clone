@@ -27,11 +27,17 @@ export const CHICKEN: RecipeSource[] = [
       ['cornstarch', 0.5, 'tsp'],
     ],
     steps: [
-      { text: 'Rinse the jasmine rice, then cook in 1 1/4 cups water: bring to a boil, cover, and simmer on low for 12 minutes. Turn off the heat and leave covered for 5 minutes, then fluff.', timer: 12 },
+      {
+        text: 'Rinse the jasmine rice, then cook in 1 1/4 cups water: bring to a boil, cover, and simmer on low for 12 minutes. Turn off the heat and leave covered for 5 minutes, then fluff.',
+        timer: 12,
+      },
       'Meanwhile, mix the soy sauce, honey, rice vinegar, grated garlic and ginger in a bowl. Stir the cornstarch into 1 tbsp cold water and set both aside.',
       'Cut the chicken thighs into bite-size pieces and the broccoli into small florets. Slice the scallions, keeping the greens separate.',
       { text: 'Heat the oil in a large pan over medium-high heat. Cook the chicken for 6–7 minutes until golden and cooked through.', timer: 7 },
-      { text: 'Add the broccoli and a splash of water, cover and steam for 3 minutes. Pour in the sauce and the cornstarch mix and bubble for 1–2 minutes until glossy.', timer: 3 },
+      {
+        text: 'Add the broccoli and a splash of water, cover and steam for 3 minutes. Pour in the sauce and the cornstarch mix and bubble for 1–2 minutes until glossy.',
+        timer: 3,
+      },
       'Serve over the rice, scattered with scallion greens and sesame seeds.',
     ],
   },
@@ -97,7 +103,10 @@ export const CHICKEN: RecipeSource[] = [
     steps: [
       'Cube the chicken and toss with the yogurt and 1 tbsp of the curry paste. Leave to marinate while you prep.',
       { text: 'Rinse the basmati and simmer in 1 1/4 cups water, covered, for 12 minutes. Rest off the heat for 5 minutes.', timer: 12 },
-      { text: 'Finely chop the onion. Fry in the oil over medium heat for 6–8 minutes until soft and golden, then add the garlic, ginger and remaining curry paste for 1 minute.', timer: 8 },
+      {
+        text: 'Finely chop the onion. Fry in the oil over medium heat for 6–8 minutes until soft and golden, then add the garlic, ginger and remaining curry paste for 1 minute.',
+        timer: 8,
+      },
       { text: 'Add the chicken and cook for 4 minutes, then pour in the tomatoes and simmer for 15 minutes, stirring now and then.', timer: 15 },
       'Stir in the cream and garam masala and warm through. Season to taste.',
       'Serve with the rice and a scattering of cilantro.',
@@ -187,7 +196,10 @@ export const CHICKEN: RecipeSource[] = [
       ['olive_oil', 1, 'tbsp'],
     ],
     steps: [
-      { text: 'Season the chicken and cook in a little oil for 5–6 minutes each side (or air fry at 400°F / 200°C for 14 minutes) until cooked through. Rest, then shred.', timer: 12 },
+      {
+        text: 'Season the chicken and cook in a little oil for 5–6 minutes each side (or air fry at 400°F / 200°C for 14 minutes) until cooked through. Rest, then shred.',
+        timer: 12,
+      },
       'Whisk the yogurt with lemon juice, chopped mint, a pinch of salt and a splash of water to make a pourable dressing.',
       'Chop the lettuce, cucumber and avocado and halve the tomatoes.',
       'Pile everything into bowls, top with the chicken and dressing and finish with sesame seeds.',
@@ -252,7 +264,10 @@ export const CHICKEN: RecipeSource[] = [
     ],
     steps: [
       'Toss the chicken with the spices, oil, half the lemon juice and a pinch of salt.',
-      { text: 'Roast at 425°F / 220°C for 20 minutes, air fry at 400°F / 200°C for 15, or pan-fry for 6–7 minutes a side, until charred and cooked.', timer: 18 },
+      {
+        text: 'Roast at 425°F / 220°C for 20 minutes, air fry at 400°F / 200°C for 15, or pan-fry for 6–7 minutes a side, until charred and cooked.',
+        timer: 18,
+      },
       'Stir one grated garlic clove and the remaining lemon juice into the yogurt.',
       'Chop the cucumber, tomatoes, onion and lettuce into a quick salad.',
       'Slice the chicken and serve over the salad with the garlic yogurt and warm pita.',
@@ -383,7 +398,10 @@ export const CHICKEN: RecipeSource[] = [
       'Heat the oven to 425°F / 220°C (or air fryer to 400°F / 200°C).',
       { text: 'Halve the potatoes, toss with 1 tbsp oil, salt and thyme and roast for 15 minutes.', timer: 15 },
       'Mix the balsamic, honey and grated garlic. Toss the chicken in half of it.',
-      { text: 'Add the chicken and broccoli (tossed in the remaining oil) to the tray. Roast for 18–20 minutes until the chicken is cooked.', timer: 20 },
+      {
+        text: 'Add the chicken and broccoli (tossed in the remaining oil) to the tray. Roast for 18–20 minutes until the chicken is cooked.',
+        timer: 20,
+      },
       'Brush the chicken with the rest of the glaze and serve.',
     ],
   },
@@ -478,7 +496,10 @@ export const CHICKEN: RecipeSource[] = [
       'Butterfly the chicken breasts. Dust in 1 tbsp flour, dip in beaten egg, then press into the panko.',
       { text: 'Air fry at 400°F / 200°C for 12–14 minutes or bake at 425°F / 220°C for 20 minutes, until golden and cooked.', timer: 14 },
       { text: 'Cook the rice: boil in 1 1/4 cups water, cover and simmer on low for 12 minutes.', timer: 12 },
-      { text: 'For the sauce, soften the chopped onion and carrot in the oil for 8 minutes. Stir in the curry powder and remaining flour, then whisk in the stock.', timer: 8 },
+      {
+        text: 'For the sauce, soften the chopped onion and carrot in the oil for 8 minutes. Stir in the curry powder and remaining flour, then whisk in the stock.',
+        timer: 8,
+      },
       { text: 'Simmer for 10 minutes, add honey and soy, then blend smooth (or leave chunky).', timer: 10 },
       'Slice the chicken and serve over rice with the curry sauce.',
     ],
@@ -508,7 +529,10 @@ export const CHICKEN: RecipeSource[] = [
       ['olive_oil', 1, 'tbsp'],
     ],
     steps: [
-      { text: 'Fry the sliced chorizo in the oil for 2 minutes until it releases its oil. Add the chicken pieces and brown for 5 minutes.', timer: 7 },
+      {
+        text: 'Fry the sliced chorizo in the oil for 2 minutes until it releases its oil. Add the chicken pieces and brown for 5 minutes.',
+        timer: 7,
+      },
       { text: 'Add the chopped onion, pepper and garlic and cook for 5 minutes until soft.', timer: 5 },
       'Stir in the paprika and rice, then the tomatoes and stock. Bring to a boil.',
       { text: 'Cover and simmer gently for 15 minutes, without stirring, until the rice is tender.', timer: 15 },
@@ -692,7 +716,10 @@ export const CHICKEN: RecipeSource[] = [
       ['oil', 1, 'tbsp'],
     ],
     steps: [
-      { text: 'Cook the pasta in salted boiling water for 10 minutes, adding the broccoli florets and peas for the last 3 minutes. Save a cup of water and drain.', timer: 10 },
+      {
+        text: 'Cook the pasta in salted boiling water for 10 minutes, adding the broccoli florets and peas for the last 3 minutes. Save a cup of water and drain.',
+        timer: 10,
+      },
       { text: 'Meanwhile, fry the sliced chicken in the oil for 6–7 minutes until golden and cooked.', timer: 7 },
       'Add the butter and garlic for 30 seconds, then the cream. Bubble for 2 minutes.',
       'Toss in the pasta, veg and parmesan, loosening with pasta water until silky. Season with black pepper.',

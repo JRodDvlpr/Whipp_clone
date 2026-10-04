@@ -2,53 +2,17 @@
 
 export type Country = 'US' | 'UK' | 'CA' | 'AU';
 
-export type Aisle =
-  | 'fruit_veg'
-  | 'meat_fish'
-  | 'chilled_dairy'
-  | 'bakery'
-  | 'cupboard'
-  | 'frozen'
-  | 'pantry';
+export type Aisle = 'fruit_veg' | 'meat_fish' | 'chilled_dairy' | 'bakery' | 'cupboard' | 'frozen' | 'pantry';
 
-export type Allergen =
-  | 'gluten'
-  | 'dairy'
-  | 'egg'
-  | 'peanut'
-  | 'tree_nut'
-  | 'soy'
-  | 'fish'
-  | 'shellfish'
-  | 'sesame';
+export type Allergen = 'gluten' | 'dairy' | 'egg' | 'peanut' | 'tree_nut' | 'soy' | 'fish' | 'shellfish' | 'sesame';
 
 export type AnimalSource = 'meat' | 'poultry' | 'fish' | 'shellfish' | 'dairy' | 'egg' | 'honey';
 
-export type ProteinKind =
-  | 'chicken'
-  | 'beef'
-  | 'pork'
-  | 'lamb'
-  | 'turkey'
-  | 'fish'
-  | 'shellfish'
-  | 'tofu'
-  | 'egg'
-  | 'legume'
-  | 'cheese';
+export type ProteinKind = 'chicken' | 'beef' | 'pork' | 'lamb' | 'turkey' | 'fish' | 'shellfish' | 'tofu' | 'egg' | 'legume' | 'cheese';
 
 export type Diet = 'vegetarian' | 'vegan' | 'pescatarian' | 'gluten_free' | 'dairy_free' | 'nut_free';
 
-export type Priority =
-  | 'quick'
-  | 'high_protein'
-  | 'family'
-  | 'healthy'
-  | 'low_carb'
-  | 'gut_friendly'
-  | 'comfort'
-  | 'plant_forward'
-  | 'batch_cook';
+export type Priority = 'quick' | 'high_protein' | 'family' | 'healthy' | 'low_carb' | 'gut_friendly' | 'comfort' | 'plant_forward' | 'batch_cook';
 
 /** Display-only tags shown on cards in addition to priorities. */
 export type ExtraTag = 'budget' | 'one_pan' | 'veggie' | 'vegan' | 'spicy';
