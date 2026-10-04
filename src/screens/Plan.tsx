@@ -35,13 +35,27 @@ export function Plan() {
     const onScroll = () => {
       const blocks = [...document.querySelectorAll<HTMLElement>('.day-block')];
       let current = blocks[0];
-      for (const b of blocks) if (b.getBoundingClientRect().top <= 140) current = b;
+      // A day counts as "current" once its heading reaches the bottom of the pinned header + strip.
+      const line = (document.querySelector('.strip-band')?.getBoundingClientRect().bottom ?? 140) + 40;
+      for (const b of blocks) if (b.getBoundingClientRect().top <= line) current = b;
       if (current) setSelected(Number(current.dataset.day));
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, [week, plan]);
+
+  // Header and day strip stay pinned together; the strip sits just below the header's measured height.
+  const headRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = headRef.current;
+    if (!el) return;
+    const set = () => document.documentElement.style.setProperty('--plan-head-h', `${el.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const goWeek = (n: number) => setParams({ week: addWeeks(week, n) }, { replace: true });
   const jump = (day: number) => {
@@ -57,7 +71,7 @@ export function Plan() {
 
   return (
     <>
-      <header className="plan-head">
+      <header className="plan-head" ref={headRef}>
         <div className="inner">
           <div className="row between">
             <div className="logo">Whipp</div>
