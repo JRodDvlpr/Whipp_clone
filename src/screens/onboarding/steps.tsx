@@ -17,26 +17,49 @@ export interface StepDef {
   eyebrow: string;
   title: [string, string];
   sub: string;
-  Body: () => ReactNode;
+  Body: (props: { editing?: boolean }) => ReactNode;
   /** Return a reason the user can't continue yet, or null. */
   block?: (p: Profile) => string | null;
 }
 
 const toggle = <T,>(xs: T[], x: T) => (xs.includes(x) ? xs.filter((y) => y !== x) : [...xs, x]);
 
-function StoreBody() {
+/** Stores with a logo in public/stores (US for now); others show their name. */
+const STORE_LOGOS = new Set([
+  'walmart',
+  'kroger',
+  'target',
+  'aldi_us',
+  'publix',
+  'safeway',
+  'wegmans',
+  'trader_joes',
+  'heb',
+  'meijer',
+  'stop_shop',
+  'food_lion',
+  'whole_foods',
+  'costco',
+]);
+
+function StoreBody({ editing }: { editing?: boolean }) {
   const profile = useApp((s) => s.profile);
   const setProfile = useApp((s) => s.setProfile);
   const setCountry = useApp((s) => s.setCountry);
+  // Whipp's edit screen is just the store grid; the country switch stays one tap away.
+  const [showCountries, setShowCountries] = useState(!editing);
+  const countries = (
+    <div className="hscroll" style={{ marginBottom: 16 }}>
+      {COUNTRIES.map((c) => (
+        <button key={c.id} className={`pill-filter ${profile.country === c.id ? 'on' : ''}`} onClick={() => setCountry(c.id)}>
+          <span>{c.flag}</span> {c.label}
+        </button>
+      ))}
+    </div>
+  );
   return (
     <>
-      <div className="hscroll" style={{ marginBottom: 16 }}>
-        {COUNTRIES.map((c) => (
-          <button key={c.id} className={`pill-filter ${profile.country === c.id ? 'on' : ''}`} onClick={() => setCountry(c.id)}>
-            <span>{c.flag}</span> {c.label}
-          </button>
-        ))}
-      </div>
+      {showCountries && countries}
       <div className="store-grid">
         {storesFor(profile.country).map((s) => (
           <button
@@ -45,16 +68,22 @@ function StoreBody() {
             style={{ color: s.color }}
             onClick={() => setProfile({ storeId: s.id })}
             aria-pressed={profile.storeId === s.id}
+            aria-label={s.name}
           >
-            {s.name}
+            {STORE_LOGOS.has(s.id) ? <img src={`${import.meta.env.BASE_URL}stores/${s.id}.svg`} alt="" draggable={false} /> : s.name}
             {profile.storeId === s.id && (
               <span className="check">
-                <Icon name="check" size={13} stroke={3.2} />
+                <Icon name="check" size={14} stroke={3.2} />
               </span>
             )}
           </button>
         ))}
       </div>
+      {!showCountries && (
+        <button className="country-link" onClick={() => setShowCountries(true)}>
+          Change country
+        </button>
+      )}
     </>
   );
 }

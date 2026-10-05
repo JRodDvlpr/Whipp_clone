@@ -225,7 +225,7 @@ export function ProfileEdit() {
         </div>
       </header>
       <div className={`edit-body ${section === 'kitchen' ? 'centered' : ''}`}>
-        <def.Body />
+        <def.Body editing />
       </div>
       <div className="bottom-bar">
         <div className="inner">

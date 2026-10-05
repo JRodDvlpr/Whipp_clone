@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 312 66" width="312" height="66">
+  <circle cx="33" cy="33" r="31" fill="#cc0000"/>
+  <circle cx="33" cy="33" r="20.5" fill="#fff"/>
+  <circle cx="33" cy="33" r="10.5" fill="#cc0000"/>
+  <text x="76" y="54" fill="#cc0000" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="700" font-size="56" letter-spacing="-2.5">TARGET</text>
+  <text x="300" y="54" fill="#cc0000" font-family="Arial, sans-serif" font-size="9">®</text>
+</svg>

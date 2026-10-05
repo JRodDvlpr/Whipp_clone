@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 100" width="250" height="100">
+  <rect x="0" y="0" width="250" height="100" rx="5" fill="#f26a21"/>
+  <rect x="6" y="6" width="238" height="88" rx="2" fill="#ffd100"/>
+  <rect x="12" y="12" width="226" height="76" fill="#00136f"/>
+  <polygon points="38,70 50,30 56,30 44,70" fill="#a6d8f5"/><polygon points="51,70 63,30 69,30 57,70" fill="#4fb3e8"/><polygon points="64,70 76,30 82,30 70,70" fill="#1f8fd6"/><polygon points="77,70 89,30 95,30 83,70" fill="#ffffff"/>
+  <polygon points="80,70 96,30 102,30 110,52 92,52 88,62 113,62 116,70" fill="#fff" opacity="0"/>
+  <text x="102" y="68" fill="#fff" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="800" font-size="44" letter-spacing="1">ALDI</text>
+</svg>
