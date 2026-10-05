@@ -221,7 +221,7 @@ export function ProfileEdit() {
           <button className="icon-btn sq" onClick={() => nav(-1)} aria-label="Back" disabled={!!blocked}>
             <Icon name="back" size={22} stroke={2.4} />
           </button>
-          <h1>{def.eyebrow}</h1>
+          <h1>{def.editTitle ?? def.eyebrow}</h1>
         </div>
       </header>
       <div className={`edit-body ${section === 'kitchen' ? 'centered' : ''}`}>

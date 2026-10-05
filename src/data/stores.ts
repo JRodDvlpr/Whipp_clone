@@ -314,9 +314,9 @@ export const COUNTRIES: { id: Country; label: string; flag: string; currency: st
   { id: 'AU', label: 'Australia', flag: '🇦🇺', currency: 'AUD', locale: 'en-AU' },
 ];
 
-/** Budget slider range and default per country (Whipp: $25–$135, £25–£150). */
+/** Budget slider range and default per country (Whipp's US app: $30–$150). */
 export const BUDGET: Record<Country, { min: number; max: number; step: number; def: number }> = {
-  US: { min: 25, max: 135, step: 5, def: 80 },
+  US: { min: 30, max: 150, step: 5, def: 80 },
   UK: { min: 25, max: 150, step: 5, def: 60 },
   CA: { min: 35, max: 180, step: 5, def: 110 },
   AU: { min: 40, max: 200, step: 5, def: 120 },

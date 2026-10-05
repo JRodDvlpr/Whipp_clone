@@ -17,6 +17,8 @@ export interface StepDef {
   eyebrow: string;
   title: [string, string];
   sub: string;
+  /** Header title on the Profile edit screen (defaults to the eyebrow). */
+  editTitle?: string;
   Body: (props: { editing?: boolean }) => ReactNode;
   /** Return a reason the user can't continue yet, or null. */
   block?: (p: Profile) => string | null;
@@ -92,7 +94,7 @@ function BudgetBody() {
   const profile = useApp((s) => s.profile);
   const setProfile = useApp((s) => s.setProfile);
   const b = BUDGET[profile.country];
-  const fill = ((profile.weeklyBudget - b.min) / (b.max - b.min)) * 100;
+  const fill = Math.min(100, Math.max(0, ((profile.weeklyBudget - b.min) / (b.max - b.min)) * 100));
   return (
     <>
       <div className="budget-big">
@@ -127,7 +129,9 @@ function BudgetBody() {
       <div className="setting-card" style={{ marginTop: 28 }}>
         <div className="row">
           <div className="icon-tile">
-            <Icon name="users" size={24} />
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+            </svg>
           </div>
           <div className="grow">
             <b style={{ fontSize: 18 }}>Cooking for</b>
@@ -138,7 +142,7 @@ function BudgetBody() {
           <Stepper value={profile.household} min={1} max={8} onChange={(household) => setProfile({ household })} label="people" />
         </div>
         <div className="row between" style={{ borderTop: '1px solid var(--line)', marginTop: 14, paddingTop: 14 }}>
-          <span style={{ fontWeight: 600 }}>Show kid-friendly dinners</span>
+          <span className="soft-label">Show kid-friendly dinners</span>
           <Toggle on={profile.kidFriendly} onChange={(kidFriendly) => setProfile({ kidFriendly })} label="Show kid-friendly dinners" />
         </div>
       </div>
@@ -419,7 +423,14 @@ function ReminderBody() {
 /** Every editable preference section (used by Profile → edit). */
 export const SECTIONS: Record<string, StepDef> = {
   store: { id: 'store', eyebrow: 'Your store', title: ['Where do you', 'shop?'], sub: 'Prices of meal plans adapt to your choice.', Body: StoreBody },
-  budget: { id: 'budget', eyebrow: 'Weekly budget', title: ['Set your', 'budget'], sub: 'Slide to set your weekly grocery cap.', Body: BudgetBody },
+  budget: {
+    id: 'budget',
+    eyebrow: 'Weekly budget',
+    editTitle: 'Budget & household',
+    title: ['Set your', 'budget'],
+    sub: 'Slide to set your weekly grocery cap.',
+    Body: BudgetBody,
+  },
   meals: {
     id: 'meals',
     eyebrow: 'Meals per day',

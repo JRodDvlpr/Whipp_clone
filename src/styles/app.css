@@ -513,13 +513,16 @@ p {
 .budget-big {
   display: grid;
   place-items: center;
-  margin: 22px 0 34px;
+  margin: 46px 0 40px;
   position: relative;
 }
 .budget-big .glow {
   position: absolute;
-  width: 220px;
-  height: 220px;
+  width: 230px;
+  height: 230px;
+  top: 50%;
+  left: 50%;
+  margin: -115px 0 0 -115px;
   border-radius: 999px;
   background: radial-gradient(circle, rgba(221, 252, 92, 0.85) 0%, rgba(221, 252, 92, 0.35) 45%, rgba(221, 252, 92, 0) 70%);
   filter: blur(4px);
@@ -538,41 +541,47 @@ p {
 }
 .budget-big .per {
   position: relative;
-  font-weight: 700;
-  color: var(--ink-soft);
-  margin-top: 6px;
+  font-weight: 600;
+  font-size: 17px;
+  color: #6f786f;
+  margin-top: 22px;
 }
 
 .range {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 26px;
+  height: 32px;
   background: transparent;
 }
+/* Filled part fades from olive-lime to bright lime, like Whipp's slider. */
 .range::-webkit-slider-runnable-track {
-  height: 22px;
+  height: 16px;
   border-radius: 99px;
-  background: linear-gradient(to right, var(--lime) var(--fill), #e4e3dc var(--fill));
+  background:
+    linear-gradient(to right, #c8e45a, var(--lime)) 0 0 / var(--fill) 100% no-repeat,
+    #e3e6e0;
 }
 .range::-moz-range-track {
-  height: 22px;
+  height: 16px;
   border-radius: 99px;
-  background: linear-gradient(to right, var(--lime) var(--fill), #e4e3dc var(--fill));
+  background:
+    linear-gradient(to right, #c8e45a, var(--lime)) 0 0 / var(--fill) 100% no-repeat,
+    #e3e6e0;
 }
 .range::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 38px;
-  height: 38px;
-  margin-top: -8px;
-  border-radius: 99px;
-  background: var(--lime);
-  border: 4px solid var(--forest);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-}
-.range::-moz-range-thumb {
   width: 30px;
   height: 30px;
+  margin-top: -7px;
+  border-radius: 99px;
+  background: var(--lime);
+  border: 3.5px solid var(--forest);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.range::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
   border-radius: 99px;
   background: var(--lime);
   border: 4px solid var(--forest);
@@ -583,7 +592,7 @@ p {
   font-size: 14px;
   font-weight: 700;
   color: var(--ink-faint);
-  margin-top: 8px;
+  margin-top: 14px;
 }
 
 .setting-card {
@@ -2316,4 +2325,10 @@ p {
   font-size: 14px;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.soft-label {
+  color: #6f786f;
+  font-weight: 500;
+  font-size: 16.5px;
 }
