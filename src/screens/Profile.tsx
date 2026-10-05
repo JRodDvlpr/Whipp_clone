@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { dislikeLabels } from '../data/dislikes';
 import { STORE_BY_ID } from '../data/stores';
@@ -20,6 +20,16 @@ function summarize(items: string[], none: string): string {
 const labels = <T extends string>(list: { id: T; label: string }[], ids: T[]) => ids.map((id) => list.find((x) => x.id === id)?.label ?? id);
 
 const FEEDBACK_URL = 'https://github.com/JRodDvlpr/Whipp_clone/issues/new?title=Feedback%3A%20';
+
+/** Like Whipp, the "Help shape Whipp" card goes away once you've sent feedback (remembered per device). */
+const FEEDBACK_KEY = 'whipp-feedback-sent';
+const readFlag = () => {
+  try {
+    return localStorage.getItem(FEEDBACK_KEY) === '1';
+  } catch {
+    return false;
+  }
+};
 
 function Row({ to, icon, label, value, onClick }: { to?: string; icon: IconName; label?: string; value: ReactNode; onClick?: () => void }) {
   const body = (
@@ -52,6 +62,7 @@ export function Profile() {
   const nav = useNavigate();
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [feedbackSent, setFeedbackSent] = useState(readFlag);
   const p = s.profile;
   const appUrl = window.location.href.split('#')[0];
 
@@ -110,29 +121,45 @@ export function Profile() {
     <div className="screen flush-top">
       <PageHead title="Profile" />
 
-      <div className="card feedback-card">
-        <div className="row" style={{ gap: 16 }}>
-          <span className="icon-tile">
-            <Icon name="chat" size={22} />
-          </span>
-          <b style={{ fontSize: 20 }}>Help shape Whipp</b>
+      {!feedbackSent && (
+        <div className="card feedback-card">
+          <div className="row" style={{ gap: 16 }}>
+            <span className="icon-tile">
+              <Icon name="chat" size={22} />
+            </span>
+            <b style={{ fontSize: 20 }}>Help shape Whipp</b>
+          </div>
+          <p className="muted" style={{ margin: '14px 0 18px', fontSize: 16.5 }}>
+            Let us know how to serve you best. We read every message.
+          </p>
+          <a
+            className="btn btn-lime btn-block"
+            href={FEEDBACK_URL}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => {
+              try {
+                localStorage.setItem(FEEDBACK_KEY, '1');
+              } catch {
+                /* private mode: the card just stays */
+              }
+              // Let the new tab open before the card disappears.
+              setTimeout(() => setFeedbackSent(true), 400);
+            }}
+          >
+            Send feedback
+          </a>
         </div>
-        <p className="muted" style={{ margin: '14px 0 18px', fontSize: 16.5 }}>
-          Let us know how to serve you best. We read every message.
-        </p>
-        <a className="btn btn-lime btn-block" href={FEEDBACK_URL} target="_blank" rel="noreferrer">
-          Send feedback
-        </a>
-      </div>
+      )}
 
       <div className="eyebrow section-title">Preferences</div>
       <div className="list-card rows">
         <Row to="/profile/edit/store" icon="store" label="Store" value={STORE_BY_ID[p.storeId]?.name ?? '—'} />
-        <Row to="/profile/edit/meals" icon="plate" label="Meals per day" value={p.meals.length > 1 ? 'Lunch & dinner' : 'Just dinner'} />
-        <Row to="/profile/edit/days" icon="calendar" label="Cooking days" value={cookingDays} />
+        <Row to="/profile/edit/meals" icon="plateFork" label="Meals per day" value={p.meals.length > 1 ? 'Lunch & dinner' : 'Just dinner'} />
+        <Row to="/profile/edit/days" icon="calendarDay" label="Cooking days" value={cookingDays} />
         <Row
           to="/profile/edit/budget"
-          icon="coins"
+          icon="coinStack"
           label="Budget & household"
           value={`${money(p.weeklyBudget, p.country, true)} · ${p.household} ${p.household === 1 ? 'person' : 'people'}`}
         />
@@ -181,6 +208,11 @@ export function Profile() {
           onClick={() => {
             if (window.confirm('Reset everything? This deletes your plans, favorites and settings on this device.')) {
               s.reset();
+              try {
+                localStorage.removeItem(FEEDBACK_KEY);
+              } catch {
+                /* nothing stored */
+              }
               nav('/welcome', { replace: true });
             }
           }}
