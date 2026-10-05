@@ -313,6 +313,7 @@ export const INGREDIENTS: CatalogIngredient[] = [
   cupboard('sriracha', 'Sriracha', '🌶️', [93, 2, 19, 1, 2], [9, 'kg'], [8, 'kg'], { density: 1.1 }),
   cupboard('chipotle', 'Chipotle Paste', '🌶️', [80, 1.5, 12, 3, 4], [15, 'kg'], [12, 'kg'], { density: 1.1 }),
   cupboard('salsa', 'Salsa', '🫙', [36, 1.5, 7, 0.2, 2], [6, 'kg'], [5, 'kg'], { density: 1.05 }),
+  cupboard('capers', 'Capers', '🫛', [23, 2.4, 4.9, 0.9, 3.2], [22, 'kg'], [14, 'kg']),
   cupboard('olives', 'Kalamata Olives', '🫒', [145, 1, 4, 15, 3], [15, 'kg'], [8, 'kg']),
   cupboard('sundried_tomatoes', 'Sun-Dried Tomatoes', '🍅', [213, 5, 23, 14, 6], [20, 'kg'], [12, 'kg']),
   cupboard('tuna', 'Canned Tuna', '🐟', [116, 26, 0, 1, 0], [1.2, 'each'], [1.0, 'each'], {

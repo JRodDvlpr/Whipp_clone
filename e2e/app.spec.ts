@@ -44,7 +44,7 @@ async function onboard(page: Page) {
   await page.getByRole('button', { name: 'Microwave', exact: true }).last().click();
   await page.getByRole('button', { name: /^Continue/ }).click();
   await page.getByRole('button', { name: /^Continue/ }).click(); // cooking days
-  await page.getByRole('button', { name: /Mushrooms/ }).click(); // things to avoid
+  await page.getByRole('button', { name: /Mushroom/ }).click(); // things to avoid
   await page.getByRole('button', { name: /^Continue/ }).click();
   await expect(page.locator('.plan-head')).toBeVisible({ timeout: 10_000 });
 }

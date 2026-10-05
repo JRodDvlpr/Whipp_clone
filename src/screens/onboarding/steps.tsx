@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { ING, INGREDIENTS, ingName } from '../../data/ingredients';
+import { DISLIKE_PICKS, pickLabel, pickOn } from '../../data/dislikes';
 import { RECIPES } from '../../data/recipes';
 import { BUDGET, COUNTRIES, storesFor } from '../../data/stores';
 import { ALLERGENS, DAY_LONG, DAY_SHORT, DIETS, PRIORITIES } from '../../data/taxonomy';
@@ -219,22 +220,7 @@ function KitchenBody() {
   );
 }
 
-const COMMON_DISLIKES = [
-  'cilantro',
-  'mushrooms',
-  'olives',
-  'eggplant',
-  'shrimp',
-  'red_onion',
-  'chili',
-  'feta',
-  'tofu',
-  'avocado',
-  'fennel',
-  'celery',
-];
-
-function DislikesBody() {
+function DislikesBody({ editing }: { editing?: boolean }) {
   const profile = useApp((s) => s.profile);
   const setProfile = useApp((s) => s.setProfile);
   const [q, setQ] = useState('');
@@ -243,20 +229,28 @@ function DislikesBody() {
     if (!s) return [];
     return INGREDIENTS.filter((i) => !i.pantry && (i.name.toLowerCase().includes(s) || i.nameUK?.toLowerCase().includes(s))).slice(0, 8);
   }, [q]);
-  const shown = [...new Set([...profile.dislikes, ...COMMON_DISLIKES])];
   const name = (id: string) => ingName(id, profile.country);
+  const togglePick = (p: (typeof DISLIKE_PICKS)[number]) =>
+    setProfile({
+      dislikes: pickOn(p, profile.dislikes)
+        ? profile.dislikes.filter((id) => !p.ids.includes(id))
+        : [...profile.dislikes, ...p.ids.filter((id) => !profile.dislikes.includes(id))],
+    });
+  // Single ingredients disliked from search or a recipe, so they can be removed here too.
+  const covered = new Set(DISLIKE_PICKS.filter((p) => pickOn(p, profile.dislikes)).flatMap((p) => p.ids));
+  const extras = profile.dislikes.filter((id) => !covered.has(id));
   return (
     <>
+      {editing && <p className="edit-intro">Tell us what to leave out and we’ll keep it out of every weekly plan.</p>}
       <label className="search">
         <Icon name="search" size={19} />
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search ingredients" aria-label="Search ingredients" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search an ingredient" aria-label="Search an ingredient" />
       </label>
       {results.length > 0 && (
         <div className="chips" style={{ marginTop: 12 }}>
           {results.map((i) => (
             <Chip
               key={i.id}
-              small
               on={profile.dislikes.includes(i.id)}
               emoji={i.emoji}
               label={name(i.id)}
@@ -266,18 +260,14 @@ function DislikesBody() {
         </div>
       )}
       <div className="eyebrow" style={{ margin: '24px 0 12px' }}>
-        Common ones
+        Common picks
       </div>
       <div className="chips">
-        {shown.map((id) => (
-          <Chip
-            key={id}
-            small
-            on={profile.dislikes.includes(id)}
-            emoji={ING[id]?.emoji}
-            label={name(id)}
-            onClick={() => setProfile({ dislikes: toggle(profile.dislikes, id) })}
-          />
+        {DISLIKE_PICKS.map((p) => (
+          <Chip key={p.id} on={pickOn(p, profile.dislikes)} emoji={p.emoji} label={pickLabel(p, profile.country)} onClick={() => togglePick(p)} />
+        ))}
+        {extras.map((id) => (
+          <Chip key={id} on emoji={ING[id]?.emoji} label={name(id)} onClick={() => setProfile({ dislikes: toggle(profile.dislikes, id) })} />
         ))}
       </div>
     </>

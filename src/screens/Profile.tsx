@@ -1,6 +1,6 @@
 import { useRef, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ingName } from '../data/ingredients';
+import { dislikeLabels } from '../data/dislikes';
 import { STORE_BY_ID } from '../data/stores';
 import { ALLERGENS, APPLIANCES, DAY_SHORT, DIETS, PRIORITIES } from '../data/taxonomy';
 import { money } from '../engine/pricing';
@@ -139,15 +139,7 @@ export function Profile() {
         <Row to="/profile/edit/priorities" icon="heart" label="Priorities" value={summarize(labels(PRIORITIES, p.priorities), 'Anything goes')} />
         <Row to="/profile/edit/kitchen" icon="oven" label="Kitchen equipment" value={summarize(labels(APPLIANCES, p.appliances), 'None selected')} />
         <Row to="/profile/edit/diet" icon="leaf" label="Dietary needs" value={summarize(diet, 'No restrictions')} />
-        <Row
-          to="/profile/edit/dislikes"
-          icon="ban"
-          label="Dislikes"
-          value={summarize(
-            p.dislikes.map((d) => ingName(d, p.country)),
-            'None',
-          )}
-        />
+        <Row to="/profile/edit/dislikes" icon="ban" label="Dislikes" value={summarize(dislikeLabels(p.dislikes, p.country), 'None')} />
       </div>
       <p className="faint" style={{ margin: '12px 4px 0', fontSize: 15 }}>
         Changes apply from your next weekly plan.
