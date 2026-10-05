@@ -16,7 +16,7 @@ Screenshots were checked with Playwright at iPhone 15 size (393×852) and iPad s
 |---|---|---|
 | 7 steps, segmented "n/7" progress bar, back button, lime "Continue ›" | Same | ✅ |
 | 1. "Where do you *shop?*": grid of store logos, check badge, "Prices of meal plans adapt to your choice." | Same layout, copy and selected state. Stores are shown as brand-coloured name tiles, not logos. A country switch is added (US/UK/CA/AU). | ✅ / ➖ no logos (trademarks) |
-| 2. "Set your *budget*": big serif number with lime glow, slider $25–$135 (£25–£150), "Cooking for" stepper, "Show kid-friendly dinners" toggle | Same | ✅ |
+| 2. "Set your *budget*": big serif number with lime glow, slider $25–$135 (£25–£150), "Cooking for" stepper, "Show kid-friendly dinners" toggle | Same; US range updated to $30–$150 to match the current app (user screenshot) | ✅ |
 | 3. Unknown | "Which meals *should we plan?*": **Just dinner / Lunch & dinner**. Whipp's Profile shows a "Meals per day" setting, so this is likely the step. | 🔶 |
 | 4. "What are you *into?*": 9 priority chips with emoji and ⊕/⊗ | Same chips, labels and states. "Gut friendly" is included. | ✅ |
 | 5. "What's in your *kitchen?*": isometric kitchen, tap appliances (Stove/Hob, Oven, Air fryer, Microwave, Rice cooker), lime glow and labels | Hand-drawn isometric SVG kitchen. Each appliance can be tapped and gets a lime glow and label. Chips underneath for accessibility. | ✅ (illustration is simpler than Whipp's 3D render) |
