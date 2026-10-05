@@ -1,6 +1,6 @@
 import { Navigate, Outlet, RouterProvider, createHashRouter, useLocation, useRouteError } from 'react-router-dom';
 import { useEffect } from 'react';
-import { useHydrated } from './state/hooks';
+import { useHydrated, useIsWide } from './state/hooks';
 import { useApp } from './state/store';
 import { TabBar } from './ui/primitives';
 import { Cook } from './screens/Cook';
@@ -61,6 +61,20 @@ function Tabs() {
   );
 }
 
+/** Phones: the grocery list slides up as a sheet over the Plan, like Whipp. Wide screens get a page. */
+function ListRoute() {
+  const wide = useIsWide();
+  if (wide) return <GroceryList />;
+  return (
+    <>
+      <div inert>
+        <Plan />
+      </div>
+      <GroceryList />
+    </>
+  );
+}
+
 const router = createHashRouter([
   {
     element: <Gate need="new" />,
@@ -85,7 +99,7 @@ const router = createHashRouter([
         ],
       },
       { path: '/plans', element: <Plans /> },
-      { path: '/list/:week', element: <GroceryList /> },
+      { path: '/list/:week', element: <ListRoute /> },
       { path: '/recipe/:id', element: <Recipe /> },
       { path: '/cook/:id', element: <Cook /> },
       { path: '/profile/edit/:section', element: <ProfileEdit /> },

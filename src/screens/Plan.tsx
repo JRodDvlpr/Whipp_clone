@@ -197,7 +197,7 @@ export function Plan() {
         {plan ? (
           <>
             <div className="row" style={{ marginTop: 14 }}>
-              <button className="btn btn-lime grow" onClick={() => nav(`/list/${week}`)}>
+              <button className="btn btn-lime grow" onClick={() => nav(`/list/${week}?week=${week}`)}>
                 <Icon name="list" size={20} /> {profile.country === 'UK' ? 'Shopping list' : 'Grocery list'}
                 {wide && summary ? ` · ${summary.listCount}` : ''}
               </button>

@@ -2341,3 +2341,83 @@ p {
   line-height: 1.45;
   margin: 0 0 18px;
 }
+
+/* Grocery list as a sheet over the Plan on phones (Whipp's iOS page sheet). */
+.list-title {
+  font-family: var(--sans);
+  font-weight: 800;
+  font-size: 32px;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.list-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 54;
+  background: rgba(12, 24, 16, 0.38);
+  animation: fade-in 0.25s ease;
+}
+.list-sheet {
+  position: fixed;
+  z-index: 55;
+  top: calc(var(--safe-top) + 58px);
+  bottom: 6px;
+  left: max(8px, calc(50% - 340px));
+  right: max(8px, calc(50% - 340px));
+  background: var(--cream);
+  border-radius: 40px;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 20px;
+  transition: transform 0.25s ease;
+  animation: sheet-up 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.list-sheet > .grab {
+  width: 40px;
+  height: 5px;
+  border-radius: 99px;
+  background: #d6d6cf;
+  margin: 10px auto 22px;
+}
+.list-sheet .item-row {
+  min-height: 52px;
+  padding: 6px 14px;
+}
+.list-sheet .item-row .name {
+  font-weight: 500;
+  font-size: 17px;
+}
+.list-sheet .item-row .qty {
+  font-size: 15px;
+  margin-left: auto;
+}
+.list-sheet .item-row .cost {
+  font-size: 16.5px;
+}
+.list-actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 12px;
+  margin: 16px -8px 0;
+  padding: 10px 0 calc(var(--safe-bottom) + 14px);
+  pointer-events: none;
+}
+.list-actions > * {
+  pointer-events: auto;
+}
+.list-actions .btn {
+  height: 58px;
+  border-radius: 22px;
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}

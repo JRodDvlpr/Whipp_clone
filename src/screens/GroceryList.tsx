@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ING, ingName } from '../data/ingredients';
 import { RECIPE_BY_ID } from '../data/recipes';
@@ -28,6 +28,36 @@ export function GroceryList() {
   const [showPantry, setShowPantry] = useState(false);
 
   const list = useMemo(() => (plan ? buildList(plan, RECIPE_BY_ID, ctx, units) : null), [plan, ctx, units]);
+  const close = () => (window.history.length > 1 ? nav(-1) : nav(`/plan?week=${week}`));
+
+  // On phones the list is a sheet over the Plan (like Whipp): lock the page behind it,
+  // close on Escape, and let a downward drag from the top dismiss it.
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const [drag, setDrag] = useState(0);
+  const dragFrom = useRef<number | null>(null);
+  useEffect(() => {
+    if (wide) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && (window.history.length > 1 ? nav(-1) : nav('/plan'));
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [wide, nav]);
+  const onTouchStart = (e: React.TouchEvent) => {
+    dragFrom.current = (sheetRef.current?.scrollTop ?? 0) <= 0 ? e.touches[0].clientY : null;
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (dragFrom.current === null) return;
+    setDrag(Math.max(0, e.touches[0].clientY - dragFrom.current));
+  };
+  const onTouchEnd = () => {
+    if (drag > 120) close();
+    setDrag(0);
+    dragFrom.current = null;
+  };
   if (!plan || !list) {
     return (
       <div className="screen">
@@ -150,7 +180,7 @@ export function GroceryList() {
               </button>
               <button className="name" style={{ textAlign: 'left' }} onClick={() => toggleCheck(week, item.key, item.checked)}>
                 {item.name}
-                {item.usedIn.length > 0 && !item.pantry && <small>{item.usedIn.join(', ')}</small>}
+                {wide && item.usedIn.length > 0 && !item.pantry && <small>{item.usedIn.join(', ')}</small>}
               </button>
               {item.qty && <span className="qty">{item.qty}</span>}
               {item.custom ? (
@@ -181,72 +211,96 @@ export function GroceryList() {
     );
   });
 
-  return (
+  const header = (
+    <div className="row between" style={{ marginTop: wide ? 6 : 0 }}>
+      <div>
+        <h1 className="list-title">{title}</h1>
+        <p className="faint" style={{ marginTop: 4, fontWeight: 500 }}>
+          {list.count} items · {weekRange(week)} · {store?.name}
+        </p>
+      </div>
+      <button className="icon-btn" style={{ width: 50, height: 50 }} onClick={close} aria-label="Close">
+        <Icon name="close" size={20} />
+      </button>
+    </div>
+  );
+  const actions = (
     <>
-      <div className={`screen ${wide ? 'wide' : ''}`} style={{ paddingBottom: 'calc(var(--safe-bottom) + 120px)' }}>
-        <div className="row between" style={{ marginTop: 6 }}>
-          <div>
-            <h1 className="title-xl">{title}</h1>
-            <p className="faint" style={{ marginTop: 4, fontWeight: 500 }}>
-              {list.count} items · {weekRange(week)} · {store?.name}
-            </p>
-          </div>
-          <button className="icon-btn" onClick={() => (window.history.length > 1 ? nav(-1) : nav('/plan'))} aria-label="Close">
-            <Icon name="close" size={20} />
-          </button>
-        </div>
+      <button className="icon-btn sq" style={{ width: 58, height: 58 }} onClick={share} aria-label="Share list">
+        <Icon name="share" size={20} />
+      </button>
+      {store && (
+        <a className="btn btn-lime grow" href={store.home} target="_blank" rel="noreferrer">
+          <Icon name="external" size={18} /> Shop online at {store.name}
+        </a>
+      )}
+    </>
+  );
+  const extras = (
+    <>
+      {priceFor?.ingredientId && store && <PriceSheet item={priceFor} storeId={store.id} onClose={() => setPriceFor(null)} />}
+      {toast.node}
+    </>
+  );
 
-        {wide ? (
-          <div className="grocery-cols" style={{ marginTop: 10 }}>
-            <div>{groups.filter((_, i) => i % 2 === 0)}</div>
-            <div>{groups.filter((_, i) => i % 2 === 1)}</div>
-            <div style={{ position: 'sticky', top: 20, marginTop: 22 }}>
-              {totalCard}
-              {addCard}
-              <div className="stack" style={{ marginTop: 14 }}>
-                <button className="btn btn-white" onClick={share}>
-                  <Icon name="share" size={18} /> Share list
-                </button>
-                {store && (
-                  <a className="btn btn-lime" href={store.home} target="_blank" rel="noreferrer">
-                    <Icon name="external" size={18} /> Shop online at {store.name}
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div style={{ marginTop: 16 }}>{totalCard}</div>
+  if (!wide)
+    return (
+      <>
+        <div className="list-backdrop" onClick={close} style={{ opacity: drag ? Math.max(0.3, 1 - drag / 400) : undefined }} />
+        <div
+          ref={sheetRef}
+          className="list-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          style={drag ? { transform: `translateY(${drag}px)`, transition: 'none' } : undefined}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          <div className="grab" />
+          {header}
+          <div style={{ marginTop: 18 }}>{totalCard}</div>
+          {list.inCart > 0 && (
             <div className="faint" style={{ fontSize: 13.5, marginTop: 8, textAlign: 'right' }}>
               {list.inCart} of {list.count} in the cart
             </div>
-            {groups}
-            {addCard}
-            <p className="faint" style={{ fontSize: 12.5, marginTop: 16 }}>
-              Prices are estimates for what each recipe uses. Tap a price to set your store’s real price.
-            </p>
-          </>
-        )}
-      </div>
+          )}
+          {groups}
+          {addCard}
+          <p className="faint" style={{ fontSize: 12.5, marginTop: 16 }}>
+            Prices are estimates for what each recipe uses. Tap a price to set your store’s real price.
+          </p>
+          <div className="list-actions">{actions}</div>
+        </div>
+        {extras}
+      </>
+    );
 
-      {!wide && (
-        <div className="bottom-bar">
-          <div className="inner">
-            <button className="icon-btn sq" style={{ width: 56, height: 56 }} onClick={share} aria-label="Share list">
-              <Icon name="share" size={20} />
-            </button>
-            {store && (
-              <a className="btn btn-lime grow" href={store.home} target="_blank" rel="noreferrer">
-                <Icon name="external" size={18} /> Shop online at {store.name}
-              </a>
-            )}
+  return (
+    <>
+      <div className="screen wide" style={{ paddingBottom: 'calc(var(--safe-bottom) + 120px)' }}>
+        {header}
+        <div className="grocery-cols" style={{ marginTop: 10 }}>
+          <div>{groups.filter((_, i) => i % 2 === 0)}</div>
+          <div>{groups.filter((_, i) => i % 2 === 1)}</div>
+          <div style={{ position: 'sticky', top: 20, marginTop: 22 }}>
+            {totalCard}
+            {addCard}
+            <div className="stack" style={{ marginTop: 14 }}>
+              <button className="btn btn-white" onClick={share}>
+                <Icon name="share" size={18} /> Share list
+              </button>
+              {store && (
+                <a className="btn btn-lime" href={store.home} target="_blank" rel="noreferrer">
+                  <Icon name="external" size={18} /> Shop online at {store.name}
+                </a>
+              )}
+            </div>
           </div>
         </div>
-      )}
-
-      {priceFor?.ingredientId && store && <PriceSheet item={priceFor} storeId={store.id} onClose={() => setPriceFor(null)} />}
-      {toast.node}
+      </div>
+      {extras}
     </>
   );
 }
