@@ -31,13 +31,18 @@ export function Plan() {
   const fmt = (n: number) => money(n, country);
 
   // The highlighted day follows the scroll position, like Whipp (Monday when you're at the top).
+  const jumping = useRef<number | undefined>(undefined);
   useEffect(() => {
     const onScroll = () => {
+      if (jumping.current !== undefined) return; // a tapped day keeps its highlight while we scroll to it
       const blocks = [...document.querySelectorAll<HTMLElement>('.day-block')];
       let current = blocks[0];
-      // A day counts as "current" once its heading reaches the bottom of the pinned header + strip.
-      const line = (document.querySelector('.strip-band')?.getBoundingClientRect().bottom ?? 140) + 40;
+      // A day becomes "current" once its heading reaches the upper third of the area below the pinned header + strip.
+      const top = document.querySelector('.strip-band')?.getBoundingClientRect().bottom ?? 140;
+      const line = top + (window.innerHeight - top) / 3;
       for (const b of blocks) if (b.getBoundingClientRect().top <= line) current = b;
+      // At the very bottom the last day can't scroll up to the line, so it wins there.
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4 && blocks.length) current = blocks[blocks.length - 1];
       if (current) setSelected(Number(current.dataset.day));
     };
     onScroll();
@@ -59,6 +64,15 @@ export function Plan() {
 
   const goWeek = (n: number) => setParams({ week: addWeeks(week, n) }, { replace: true });
   const jump = (day: number) => {
+    setSelected(day);
+    // Hold the tapped day until the smooth scroll settles (scrollend, with a timeout fallback).
+    window.clearTimeout(jumping.current);
+    const release = () => {
+      window.clearTimeout(jumping.current);
+      jumping.current = undefined;
+    };
+    jumping.current = window.setTimeout(release, 1200);
+    window.addEventListener('scrollend', release, { once: true });
     document.getElementById(`day-${day}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -172,6 +186,8 @@ export function Plan() {
               <Icon name="chevronLeft" size={22} />
             </button>
             <div className="days">
+              {/* One highlight that slides between days, so the switch reads as quick motion. */}
+              <span className="day-indicator" style={{ ['--i' as string]: selected }} aria-hidden="true" />
               {DAY_SHORT.map((d, i) => {
                 const has = plan?.meals.some((m) => m.day === i);
                 return (
@@ -241,8 +257,19 @@ export function Plan() {
                           onSwap={() => setSwap({ key, mode: 'swap' })}
                         />
                       ) : (
-                        <button key={slot} className="empty-day" onClick={() => setSwap({ key, mode: 'add' })}>
-                          <Icon name="plus" size={18} stroke={2.6} /> Add {slot === 'lunch' ? 'a lunch' : 'a dinner'}
+                        <button
+                          key={slot}
+                          className="empty-day"
+                          onClick={() => setSwap({ key, mode: 'add' })}
+                          aria-label={`Add ${slot === 'lunch' ? 'a lunch' : 'a dinner'} on ${DAY_LONG[day]}`}
+                        >
+                          <span className="plus-tile">
+                            <Icon name="plus" size={22} stroke={2.4} />
+                          </span>
+                          <span className="grow">
+                            <span className="slot-label">{slot}</span>
+                            <span className="add-text">Add a meal</span>
+                          </span>
                         </button>
                       );
                     })}
