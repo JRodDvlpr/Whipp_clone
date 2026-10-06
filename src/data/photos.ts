@@ -1,5 +1,7 @@
 // Photo filenames from TheMealDB (https://www.themealdb.com) — free dish photos, keyed by meal id.
 // Generated from the public API; only main-course categories are included.
+import { LOCAL_PHOTOS } from './photoCredits';
+
 const BASE = 'https://www.themealdb.com/images/media/meals/';
 
 const PHOTOS: Record<string, string> = {
@@ -481,5 +483,8 @@ const PHOTOS: Record<string, string> = {
 /** Full-size photo URL, or undefined if the id is unknown. */
 export const photoUrl = (mdbId?: string) => (mdbId && PHOTOS[mdbId] ? BASE + PHOTOS[mdbId] : undefined);
 
-/** TheMealDB serves resized variants at /small (250px) and /medium (500px). */
-export const photoThumb = (url?: string) => (url ? `${url}/medium` : undefined);
+/** Self-hosted Wikimedia Commons photo for a recipe without a TheMealDB match (see photoCredits.ts). */
+export const localPhoto = (recipeId: string) => (LOCAL_PHOTOS[recipeId] ? `${import.meta.env.BASE_URL}photos/${recipeId}.jpg` : undefined);
+
+/** TheMealDB serves resized variants at /small (250px) and /medium (500px); our own photos are already small. */
+export const photoThumb = (url?: string) => (url ? (url.startsWith(BASE) ? `${url}/medium` : url) : undefined);

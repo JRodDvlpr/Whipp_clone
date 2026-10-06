@@ -1,5 +1,5 @@
 import { ING } from '../data/ingredients';
-import { photoUrl } from '../data/photos';
+import { localPhoto, photoUrl } from '../data/photos';
 import type { Allergen, Diet, Nutrition, Priority, ProteinKind, Recipe, RecipeSource } from '../types';
 import { lineGrams } from './units';
 
@@ -85,7 +85,7 @@ export function enrich(src: RecipeSource): Recipe {
     allergens,
     mainProtein: mainProteinOf(src),
     ingredientIds: src.ingredients.map((l) => l[0]),
-    image: photoUrl(src.photo),
+    image: photoUrl(src.photo) ?? localPhoto(src.id),
     // Lunch-worthy: quick and on the lighter side (salads, soups, bowls, wraps, stir-fries).
     lunch: (src.time <= 30 && nutrition.kcal <= 720) || (tags.has('healthy') && src.time <= 35 && nutrition.kcal <= 700),
   };

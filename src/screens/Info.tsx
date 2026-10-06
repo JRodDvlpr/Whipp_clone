@@ -1,4 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import { LOCAL_PHOTOS } from '../data/photoCredits';
+import { RECIPE_BY_ID } from '../data/recipes';
 import { Icon } from '../ui/Icon';
 
 type Section = { q: string; a: string };
@@ -47,7 +49,7 @@ const PAGES: Record<string, { title: string; intro?: string; sections: Section[]
       },
       {
         q: 'What leaves your device',
-        a: 'Only requests for dish photos, which are loaded from TheMealDB. No analytics, ads, tracking or sign-in.',
+        a: 'Only requests for dish photos, which are loaded from TheMealDB (the rest ship with the app). No analytics, ads, tracking or sign-in.',
       },
       {
         q: 'Your choices',
@@ -72,10 +74,20 @@ const PAGES: Record<string, { title: string; intro?: string; sections: Section[]
   },
 };
 
+/** Attribution for the self-hosted Wikimedia Commons photos (CC licenses require it). */
+const CREDITS = {
+  title: 'Photo credits',
+  intro:
+    'Most dish photos come from TheMealDB. The rest are from Wikimedia Commons, used under the licenses below. Photos show a similar dish and may differ from the recipe.',
+  sections: Object.entries(LOCAL_PHOTOS)
+    .map(([id, c]) => ({ q: RECIPE_BY_ID[id]?.title ?? id, a: `“${c.file}” by ${c.artist} · ${c.license} · Wikimedia Commons` }))
+    .sort((a, b) => a.q.localeCompare(b.q)),
+};
+
 export function Info() {
   const { page = '' } = useParams();
   const nav = useNavigate();
-  const def = PAGES[page];
+  const def = page === 'credits' ? CREDITS : PAGES[page];
   if (!def) return null;
   return (
     <div className="screen">

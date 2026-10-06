@@ -71,6 +71,6 @@ The first time, you may need to enable Pages under **Settings → Pages → Sour
 
 - Grocery totals are estimates, not receipts.
 - Nutrition is a guide, not medical advice.
-- Dish photos come from [TheMealDB](https://www.themealdb.com). Recipes without a matching photo show an illustrated plate.
+- Dish photos come from [TheMealDB](https://www.themealdb.com). Dishes it doesn't cover use free-licensed photos from [Wikimedia Commons](https://commons.wikimedia.org), self-hosted in `public/photos/` and credited in-app (Profile → photo credits) and in `src/data/photoCredits.ts`. The two remaining recipes show an illustrated plate.
 - Store logos in `public/stores/` are trademarks of their owners, taken from Wikipedia/Wikimedia Commons (Target and Aldi redrawn as simple SVGs), and are used only to identify each store.
 - This project isn't affiliated with Whipp/Evoy Ltd or with any of the supermarkets it names.

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { ING, INGREDIENTS } from './ingredients';
 import { RECIPE_SOURCES, RECIPES } from './recipes';
 import { STORES } from './stores';
+import { existsSync } from 'node:fs';
+import { LOCAL_PHOTOS } from './photoCredits';
 import { photoUrl } from './photos';
 import { lineGrams } from '../engine/units';
 import type { Diet } from '../types';
@@ -42,6 +44,17 @@ describe('recipes', () => {
     for (const r of RECIPE_SOURCES) {
       if (r.photo) expect(photoUrl(r.photo), `${r.id} photo ${r.photo}`).toBeTruthy();
       else expect(r.art, `${r.id} needs photo or art`).toBeTruthy();
+    }
+  });
+
+  it('self-hosted photos exist and are credited', () => {
+    for (const [id, c] of Object.entries(LOCAL_PHOTOS)) {
+      expect(
+        RECIPE_SOURCES.some((r) => r.id === id),
+        `${id} is a recipe`,
+      ).toBe(true);
+      expect(existsSync(`public/photos/${id}.jpg`), `public/photos/${id}.jpg`).toBe(true);
+      expect(c.artist && c.license && c.file, `${id} credit`).toBeTruthy();
     }
   });
 

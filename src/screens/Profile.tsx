@@ -223,7 +223,9 @@ export function Profile() {
       <p className="faint" style={{ textAlign: 'center', fontSize: 13, margin: '24px 0 0' }}>
         Support ID · {s.supportId}
         <br />
-        Dish photos from TheMealDB
+        <Link to="/info/credits" style={{ textDecoration: 'underline' }}>
+          Dish photos from TheMealDB & Wikimedia Commons
+        </Link>
       </p>
       {toast.node}
     </div>

@@ -34,6 +34,12 @@ export default defineConfig({
         navigateFallback: 'index.html',
         runtimeCaching: [
           {
+            // Self-hosted dish photos: cached the first time they're seen so plans work offline.
+            urlPattern: ({ url }) => url.pathname.includes('/photos/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'own-photos', expiration: { maxEntries: 200 } },
+          },
+          {
             urlPattern: ({ url }) => url.hostname === 'www.themealdb.com',
             handler: 'CacheFirst',
             options: {
