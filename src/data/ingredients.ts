@@ -109,6 +109,7 @@ export const INGREDIENTS: CatalogIngredient[] = [
   veg('kale', 'Kale', '🥬', [49, 4.3, 8.8, 0.9, 3.6], [8, 'kg'], [4, 'kg']),
   veg('asparagus', 'Asparagus', '🌱', [20, 2.2, 3.9, 0.1, 2.1], [8.8, 'kg'], [8, 'kg']),
   veg('mango', 'Mango', '🥭', [60, 0.8, 15, 0.4, 1.6], [1, 'each'], [0.9, 'each'], { each: 200, buy: 'count' }),
+  veg('pomegranate', 'Pomegranate', '🍎', [83, 1.7, 19, 1.2, 4], [2, 'each'], [1, 'each'], { each: 160, buy: 'count' }),
   veg('pineapple', 'Pineapple', '🍍', [50, 0.5, 13, 0.1, 1.4], [2.5, 'each'], [1.2, 'each'], { each: 900, buy: 'count' }),
   veg('corn_cob', 'Corn on the Cob', '🌽', [86, 3.3, 19, 1.4, 2.4], [0.5, 'each'], [0.5, 'each'], { each: 150, buy: 'count' }),
 
@@ -221,6 +222,7 @@ export const INGREDIENTS: CatalogIngredient[] = [
   // ── Cupboard ──────────────────────────────────────────────────────────────
   cupboard('jasmine_rice', 'Jasmine Rice', '🍚', [365, 7, 80, 0.6, 1.3], [2.6, 'kg'], [2.2, 'kg'], { cup: 185 }),
   cupboard('basmati_rice', 'Basmati Rice', '🍚', [360, 8, 78, 0.9, 1.2], [3.5, 'kg'], [2.4, 'kg'], { cup: 185 }),
+  cupboard('brown_rice', 'Brown Rice', '🍚', [370, 7.9, 77, 2.9, 3.5], [2.8, 'kg'], [2.2, 'kg'], { cup: 190 }),
   cupboard('arborio_rice', 'Arborio Rice', '🍚', [355, 7, 79, 0.6, 1.4], [5.5, 'kg'], [3.2, 'kg'], { uk: 'Risotto Rice', cup: 200 }),
   cupboard('spaghetti', 'Spaghetti', '🍝', [371, 13, 75, 1.5, 3.2], [2.2, 'kg'], [1.2, 'kg'], { allergens: ['gluten'] }),
   cupboard('linguine', 'Linguine', '🍝', [371, 13, 75, 1.5, 3.2], [3, 'kg'], [1.8, 'kg'], { allergens: ['gluten'] }),
@@ -292,6 +294,7 @@ export const INGREDIENTS: CatalogIngredient[] = [
   cupboard('peanut_butter', 'Peanut Butter', '🥜', [588, 25, 20, 50, 6], [5.5, 'kg'], [7.3, 'kg'], { density: 1.05, allergens: ['peanut'] }),
   cupboard('peanuts', 'Roasted Peanuts', '🥜', [585, 24, 21, 50, 8], [8, 'kg'], [5, 'kg'], { density: 0.6, allergens: ['peanut'] }),
   cupboard('cashews', 'Cashews', '🥜', [574, 15, 33, 46, 3], [18, 'kg'], [12, 'kg'], { density: 0.55, allergens: ['tree_nut'] }),
+  cupboard('walnuts', 'Walnuts', '🌰', [654, 15, 14, 65, 7], [12, 'kg'], [10, 'kg'], { density: 0.45, allergens: ['tree_nut'] }),
   cupboard('tahini', 'Tahini', '🫙', [595, 17, 21, 54, 9], [14, 'kg'], [8, 'kg'], { density: 1, allergens: ['sesame'] }),
   cupboard('pesto', 'Basil Pesto', '🫙', [460, 5, 6, 46, 2], [21, 'kg'], [8, 'kg'], {
     density: 1,
@@ -319,6 +322,15 @@ export const INGREDIENTS: CatalogIngredient[] = [
   cupboard('tuna', 'Canned Tuna', '🐟', [116, 26, 0, 1, 0], [1.2, 'each'], [1.0, 'each'], {
     uk: 'Tinned Tuna',
     each: 112,
+    buy: 'count',
+    countUnit: 'can',
+    animal: 'fish',
+    protein: 'fish',
+    allergens: ['fish'],
+  }),
+  cupboard('sardines', 'Canned Sardines', '🐟', [208, 25, 0, 11, 0], [1.6, 'each'], [0.95, 'each'], {
+    uk: 'Tinned Sardines',
+    each: 106,
     buy: 'count',
     countUnit: 'can',
     animal: 'fish',

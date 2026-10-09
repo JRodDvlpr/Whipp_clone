@@ -12,7 +12,18 @@ export type ProteinKind = 'chicken' | 'beef' | 'pork' | 'lamb' | 'turkey' | 'fis
 
 export type Diet = 'vegetarian' | 'vegan' | 'pescatarian' | 'gluten_free' | 'dairy_free' | 'nut_free';
 
-export type Priority = 'quick' | 'high_protein' | 'family' | 'healthy' | 'low_carb' | 'gut_friendly' | 'comfort' | 'plant_forward' | 'batch_cook';
+export type Priority =
+  | 'quick'
+  | 'high_protein'
+  | 'family'
+  | 'healthy'
+  | 'low_carb'
+  | 'gut_friendly'
+  | 'comfort'
+  | 'plant_forward'
+  | 'batch_cook'
+  /** "Her Balance": weight-loss friendly, hormone-supportive meals (computed, see engine/balance.ts). */
+  | 'balance';
 
 /** Display-only tags shown on cards in addition to priorities. */
 export type ExtraTag = 'budget' | 'one_pan' | 'veggie' | 'vegan' | 'spicy';

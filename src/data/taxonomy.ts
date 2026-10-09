@@ -10,6 +10,7 @@ export const PRIORITIES: { id: Priority; label: string; labelUK?: string; emoji:
   { id: 'comfort', label: 'Comfort food', emoji: '🍲' },
   { id: 'plant_forward', label: 'Plant-forward', emoji: '🌿' },
   { id: 'batch_cook', label: 'Batch cook', emoji: '🍱' },
+  { id: 'balance', label: 'Her Balance · weight loss', emoji: '🌸' },
 ];
 
 /** Short labels used on recipe/meal card chips. */
@@ -23,6 +24,7 @@ export const TAG_LABELS: Record<Priority | ExtraTag, string> = {
   comfort: 'Comfort',
   plant_forward: 'Plant-forward',
   batch_cook: 'Batch cook',
+  balance: 'Her Balance',
   budget: 'Budget pick',
   one_pan: 'One-pan',
   veggie: 'Veggie',
@@ -31,8 +33,9 @@ export const TAG_LABELS: Record<Priority | ExtraTag, string> = {
 };
 
 /** Chip style per tag — mirrors Whipp: lime for Healthy, soft green for most, outline for Quick prep. */
-export const TAG_STYLE: Partial<Record<Priority | ExtraTag, 'lime' | 'soft' | 'outline'>> = {
+export const TAG_STYLE: Partial<Record<Priority | ExtraTag, 'lime' | 'soft' | 'outline' | 'pink'>> = {
   healthy: 'lime',
+  balance: 'pink',
   budget: 'lime',
   quick: 'outline',
   comfort: 'outline',

@@ -155,7 +155,18 @@ export function MealImage({ recipe, size = 'thumb' }: { recipe: Recipe; size?: '
   );
 }
 
-const TAG_ORDER: Priority[] = ['quick', 'high_protein', 'healthy', 'comfort', 'family', 'low_carb', 'gut_friendly', 'batch_cook', 'plant_forward'];
+const TAG_ORDER: Priority[] = [
+  'quick',
+  'high_protein',
+  'healthy',
+  'comfort',
+  'family',
+  'low_carb',
+  'gut_friendly',
+  'batch_cook',
+  'plant_forward',
+  'balance',
+];
 
 /** Up to `max` chips: diet badge first, then the user's priorities, then the rest. */
 export function recipeTags(recipe: Recipe, priorities: Priority[] = [], max = 2): (Priority | ExtraTag)[] {

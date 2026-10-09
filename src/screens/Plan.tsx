@@ -82,6 +82,9 @@ export function Plan() {
   const slots = SLOTS.filter((sl) => profile.meals.includes(sl) || plan?.meals.some((m) => slotOf(m) === sl));
   const labelled = slots.length > 1;
   const mealWord = profile.meals.length > 1 ? 'meals' : 'dinners';
+  // With Her Balance on, flag meals the planner had to take from outside it (budget or filters too tight).
+  const balanceShort =
+    plan && profile.priorities.includes('balance') ? plan.meals.filter((m) => !RECIPE_BY_ID[m.recipeId]?.tags.includes('balance')).length : 0;
 
   return (
     <>
@@ -227,6 +230,15 @@ export function Plan() {
                 <Icon name="redo" size={19} stroke={2.4} /> Redo
               </button>
             </div>
+            {balanceShort > 0 && (
+              <div className="notice">
+                <span aria-hidden="true">🌸</span>
+                <span>
+                  {balanceShort} {balanceShort === 1 ? 'meal isn’t' : 'meals aren’t'} Her Balance this week — your budget or filters left too few.
+                  Raise your budget or loosen a filter, then tap Redo.
+                </span>
+              </div>
+            )}
             {plan.overBudget && (
               <div className="notice">
                 <Icon name="alert" size={18} />

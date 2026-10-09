@@ -2545,3 +2545,102 @@ p {
 .day-pill.on.empty b {
   color: #fff;
 }
+
+/* ── Her Balance ───────────────────────────────────────────────────────────── */
+.balance-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: #fde7ef;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  flex: none;
+}
+.balance-card {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1.5px solid #f6cfdc;
+}
+.balance-card b {
+  font-size: 17px;
+}
+.balance-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 14px 0 10px;
+}
+.balance-stats span {
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.25;
+}
+.balance-stats b {
+  display: block;
+  font-size: 16px;
+  color: var(--ink);
+}
+.balance-list {
+  margin: 0;
+  padding: 0 0 0 18px;
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  line-height: 1.45;
+}
+.balance-list li + li {
+  margin-top: 4px;
+}
+.balance-list b {
+  font-size: 14.5px;
+  color: var(--ink);
+}
+.balance-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--forest);
+}
+.balance-feature {
+  width: 100%;
+  margin-top: 22px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 16px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #fff1f5, #fbe3ec);
+  border: 1.5px solid #f6cfdc;
+  color: var(--ink);
+}
+.balance-feature .grow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.balance-feature b {
+  font-size: 19px;
+}
+.balance-feature span span,
+.balance-feature .grow > span {
+  color: var(--ink-soft);
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+.balance-feature em {
+  font-style: normal;
+  font-weight: 800;
+  font-size: 14.5px;
+  color: var(--forest);
+  margin-top: 4px;
+}
+.tag.pink {
+  background: #fde2ec;
+  color: #8a2c4f;
+}

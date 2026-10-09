@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { RECIPES } from '../data/recipes';
 import { TAG_LABELS } from '../data/taxonomy';
 import { perServing } from '../engine/cost';
@@ -16,6 +17,7 @@ const CHEAP: Record<Country, number> = { US: 3, UK: 2.5, CA: 4, AU: 4.5 };
 type Filter = { id: string; label: string; test: (r: Recipe, pp: number) => boolean };
 
 const filtersFor = (country: Country): Filter[] => [
+  { id: 'balance', label: '🌸 Her Balance', test: (r) => r.tags.includes('balance') },
   { id: 'family', label: 'Family friendly', test: (r) => r.tags.includes('family') || !!r.kid },
   { id: 'quick', label: 'Quick meal', test: (r) => r.time <= 30 },
   { id: 'light', label: 'Light', test: (r) => r.nutrition.kcal <= 550 },
@@ -94,6 +96,7 @@ export function Discover() {
     [],
   );
   const browsing = !q && !filter && !cuisine;
+  const balanceCount = useMemo(() => RECIPES.filter((r) => r.tags.includes('balance')).length, []);
   const activeCuisine = CUISINES.find((c) => c.id === cuisine);
 
   return (
@@ -123,6 +126,19 @@ export function Discover() {
       </PageHead>
 
       {browsing && (
+        <button className="balance-feature" onClick={() => setFilter('balance')}>
+          <span className="balance-icon" aria-hidden="true">
+            🌸
+          </span>
+          <span className="grow">
+            <b>Her Balance</b>
+            <span>Weight-loss friendly meals that support hormones — 25 g+ protein, 7 g+ fiber, 350–650 kcal.</span>
+            <em>See {balanceCount} meals →</em>
+          </span>
+        </button>
+      )}
+
+      {browsing && (
         <>
           <div className="eyebrow section-title">Explore by cuisine</div>
           <div className="hscroll">
@@ -138,6 +154,11 @@ export function Discover() {
 
       <div className="row between section-title">
         <span className="eyebrow">{browsing ? 'All meals' : `${results.length} ${results.length === 1 ? 'meal' : 'meals'}`}</span>
+        {filter === 'balance' && (
+          <Link to="/info/balance" className="faint" style={{ fontSize: 14, textDecoration: 'underline' }}>
+            How we choose
+          </Link>
+        )}
         {activeCuisine && (
           <button className="filter-pill on sm" onClick={() => setCuisine(null)} aria-label={`Clear ${activeCuisine.label}`}>
             {activeCuisine.label} <Icon name="close" size={14} stroke={2.6} />

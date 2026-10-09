@@ -1,5 +1,6 @@
 import { ING } from '../data/ingredients';
 import { localPhoto, photoUrl } from '../data/photos';
+import { balanceCheck } from './balance';
 import type { Allergen, Diet, Nutrition, Priority, ProteinKind, Recipe, RecipeSource } from '../types';
 import { lineGrams } from './units';
 
@@ -76,6 +77,7 @@ export function enrich(src: RecipeSource): Recipe {
   if (nutrition.protein >= 30) tags.add('high_protein');
   if (nutrition.carbs <= 30) tags.add('low_carb');
   if (diets.includes('vegetarian')) tags.add('plant_forward');
+  if (balanceCheck({ ingredients: src.ingredients, serves: src.serves, nutrition }).ok) tags.add('balance');
   return {
     ...src,
     steps: src.steps.map((s) => (typeof s === 'string' ? { text: s } : s)),

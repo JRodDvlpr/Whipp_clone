@@ -13,6 +13,7 @@ import { isMeal, slotOf } from '../engine/slots';
 import type { Recipe as RecipeT, RecipeLine, Slot } from '../types';
 import { Icon } from '../ui/Icon';
 import { MealImage, Sheet, Tags, recipeTags, useToast } from '../ui/primitives';
+import { BalancePanel } from '../ui/Balance';
 import { SwapSheet } from './Plan';
 
 export function Recipe() {
@@ -139,6 +140,7 @@ export function Recipe() {
       <p className="faint" style={{ fontSize: 13, marginTop: 8 }}>
         Per serving · {recipe.cuisine}
       </p>
+      <BalancePanel recipe={recipe} />
     </>
   );
 

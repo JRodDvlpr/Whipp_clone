@@ -4,6 +4,7 @@ import { BATCH2_MEAT } from './batch2-meat';
 import { BATCH2_VEGGIE } from './batch2-veggie';
 import { BATCH3_MEAT } from './batch3-meat';
 import { BATCH3_VEGGIE } from './batch3-veggie';
+import { BALANCE_MEALS } from './balance';
 import { BATCH4 } from './batch4';
 import { CHICKEN } from './chicken';
 import { MEAT } from './meat';
@@ -20,6 +21,7 @@ export const RECIPE_SOURCES: RecipeSource[] = [
   ...BATCH3_MEAT,
   ...BATCH3_VEGGIE,
   ...BATCH4,
+  ...BALANCE_MEALS,
 ];
 
 export const RECIPES: Recipe[] = RECIPE_SOURCES.map(enrich);

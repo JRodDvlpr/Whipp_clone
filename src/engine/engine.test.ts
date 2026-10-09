@@ -4,6 +4,7 @@ import { ALLERGENS, DIETS, PRIORITIES } from '../data/taxonomy';
 import type { Appliance, Profile } from '../types';
 import { recipeCost, weekCost } from './cost';
 import { buildList } from './groceryList';
+import { balanceCheck } from './balance';
 import { generateWeek, isEligible, swapOptions } from './planner';
 import { rng } from './rng';
 import { formatBuyQty, formatLineQty, formatWeight, niceNumber } from './units';
@@ -232,5 +233,44 @@ describe('weekly reminder', () => {
     expect(ics).toContain('RRULE:FREQ=WEEKLY;BYDAY=SU');
     expect(ics).toContain('DTSTART:20261004T170000');
     expect(ics).toContain('BEGIN:VALARM');
+  });
+});
+
+describe('Her Balance', () => {
+  const her: Profile = { ...base, priorities: ['balance'], weeklyBudget: 120 };
+
+  it('tags only meals that meet every rule, and there are plenty of them', () => {
+    const tagged = RECIPES.filter((r) => r.tags.includes('balance'));
+    for (const r of tagged) {
+      const c = balanceCheck(r);
+      expect(c.ok, `${r.id}: ${c.misses.join(', ')}`).toBe(true);
+      expect(r.nutrition.kcal).toBeLessThanOrEqual(650);
+      expect(r.nutrition.protein).toBeGreaterThanOrEqual(25);
+      expect(r.nutrition.fiber).toBeGreaterThanOrEqual(7);
+      expect(c.highlights.length).toBeGreaterThan(0);
+    }
+    expect(tagged.length).toBeGreaterThanOrEqual(30);
+    expect(tagged.filter((r) => r.lunch).length).toBeGreaterThanOrEqual(14);
+    expect(tagged.filter((r) => r.diets.includes('vegetarian')).length).toBeGreaterThanOrEqual(6);
+  });
+
+  it('plans whole weeks (dinners, or lunch + dinner) from Her Balance meals only', () => {
+    for (const meals of [['dinner'], ['lunch', 'dinner']] as Profile['meals'][]) {
+      for (let seed = 1; seed <= 20; seed++) {
+        const res = generateWeek({ profile: { ...her, meals }, recipes: RECIPES, seed, ctx });
+        expect(res.unfilled).toEqual([]);
+        for (const m of res.meals) expect(RECIPE_BY_ID[m.recipeId].tags, m.recipeId).toContain('balance');
+      }
+    }
+  });
+
+  it('still respects diets and offers Her Balance swaps', () => {
+    const veg: Profile = { ...her, diets: ['vegetarian'] };
+    const res = generateWeek({ profile: veg, recipes: RECIPES, seed: 3, ctx });
+    for (const m of res.meals) expect(RECIPE_BY_ID[m.recipeId].diets).toContain('vegetarian');
+    const week = generateWeek({ profile: her, recipes: RECIPES, seed: 5, ctx });
+    const opts = swapOptions({ profile: her, recipes: RECIPES, seed: 5, ctx, meals: week.meals, key: { day: 0, slot: 'dinner' } });
+    expect(opts.length).toBeGreaterThan(0);
+    for (const o of opts) expect(o.recipe.tags).toContain('balance');
   });
 });

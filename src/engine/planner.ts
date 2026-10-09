@@ -55,6 +55,28 @@ function baseScore(r: Recipe, input: PlanInput, jitter: () => number): number {
   return s + jitter() * 2;
 }
 
+/**
+ * With "Her Balance" chosen, plan only from Her Balance meals when they can fill the week:
+ * enough of them (and enough lunch-worthy ones) after diets, dislikes and kitchen, and — when a cost
+ * is given — a week of the cheapest ones still fits the budget. Otherwise use everything; the priority
+ * still prefers them. Budget stays the promise.
+ */
+export function focusPool(pool: Recipe[], profile: Profile, need: MealKey[], cost?: (r: Recipe) => number, budget = Infinity): Recipe[] {
+  if (!profile.priorities.includes('balance')) return pool;
+  const focused = pool.filter((r) => r.tags.includes('balance'));
+  const lunches = need.filter((k) => k.slot === 'lunch').length;
+  if (focused.length < need.length || focused.filter((r) => r.lunch).length < lunches) return pool;
+  if (cost) {
+    const cheapest = focused
+      .map(cost)
+      .sort((x, y) => x - y)
+      .slice(0, need.length)
+      .reduce((t, c) => t + c, 0);
+    if (cheapest > budget) return pool;
+  }
+  return focused;
+}
+
 type Chosen = { key: MealKey; recipe: Recipe };
 
 /** How well `r` fits alongside the meals already chosen. `perDay` scales the repeat limits for lunch + dinner weeks. */
@@ -86,7 +108,15 @@ export function generateWeek(input: PlanInput): PlanResult {
   const keep = (input.keep ?? []).filter((m) => keys.some((k) => isMeal(m, k)));
   const byId = Object.fromEntries(recipes.map((r) => [r.id, r]));
 
-  const pool = recipes.filter((r) => isEligible(r, profile));
+  const isKeptKey = (k: MealKey) => keep.some((m) => isMeal(m, k));
+  const keptBudget = keep.reduce((t, m) => t + (byId[m.recipeId] ? recipeCost(byId[m.recipeId], m.servings, ctx, m.removed) : 0), 0);
+  const pool = focusPool(
+    recipes.filter((r) => isEligible(r, profile)),
+    profile,
+    keys.filter((k) => !isKeptKey(k)),
+    (r) => recipeCost(r, household, ctx),
+    profile.weeklyBudget - keptBudget,
+  );
   const score = new Map(pool.map((r) => [r.id, baseScore(r, input, rand)]));
   const cost = new Map(pool.map((r) => [r.id, recipeCost(r, household, ctx)]));
 
@@ -175,8 +205,12 @@ export function swapOptions(input: PlanInput & { meals: PlannedMeal[]; key: Meal
   const servings = current?.servings ?? profile.household;
   const perDay = Math.max(1, profile.meals?.length ?? 1);
 
-  return recipes
-    .filter((r) => !inWeek.has(r.id) && isEligible(r, profile) && fitsSlot(r, key.slot))
+  const candidates = recipes.filter((r) => !inWeek.has(r.id) && isEligible(r, profile) && fitsSlot(r, key.slot));
+  return focusPool(
+    candidates,
+    profile,
+    Array.from({ length: Math.min(4, input.limit ?? 8) }, () => key),
+  )
     .map((r) => {
       const c = recipeCost(r, servings, ctx);
       const newTotal = othersCost + c;

@@ -153,3 +153,20 @@ test('discover filters, cuisines and favorites', async ({ page }) => {
   await page.goto('/#/favorites');
   await expect(page.getByText('No favorites yet')).toBeVisible();
 });
+
+test('Her Balance plans a week of qualifying meals and explains why', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /Get started/ }).click();
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: /^Continue/ }).click();
+  await page.getByRole('button', { name: /Her Balance/ }).click();
+  for (let i = 0; i < 4; i++) await page.getByRole('button', { name: /^Continue/ }).click();
+  await expect(page.locator('.plan-head')).toBeVisible({ timeout: 10_000 });
+  const cards = page.locator('.meal-card');
+  await expect(cards).toHaveCount(7);
+  for (let i = 0; i < 7; i++) await expect(cards.nth(i).getByText('Her Balance')).toBeVisible();
+  await cards.first().locator('a').click();
+  await expect(page.getByText('Weight-loss friendly · supports hormones')).toBeVisible();
+  await page.getByRole('link', { name: /How we choose these meals/ }).click();
+  await expect(page.getByRole('heading', { name: 'Her Balance' })).toBeVisible();
+  await expect(page.getByText('Not medical advice')).toBeVisible();
+});

@@ -51,7 +51,8 @@ To keep a backup of your plans and settings, use **Profile → Back up my data**
   - method, plus a step-by-step **cook mode** with timers that keeps the screen on
   - leave an ingredient out, or ban it forever
 - **Discover:** search, filters and collections. **Favorites:** recipes you've saved with ♥. **Profile:** edit every preference, choose units, back up, restore or reset.
-- **Recipe library:** 310 original dinners. Nutrition, diet labels and allergens are *computed from the ingredients*, so the labels can't be wrong.
+- **Her Balance (🌸):** an optional priority for a woman losing weight who wants meals that support hormones and nutrients. A meal earns the badge only if its computed numbers pass every rule: 350–650 kcal, 25 g+ protein, 7 g+ fiber, ≤ 60 g net carbs, little added sugar, no processed meat or fried food, and at least one key nutrient (iron, calcium, omega-3, leafy or cruciferous greens, legumes, whole grains). With it on, weeks are planned from these meals within your budget; Discover has a collection, recipes explain why they fit, and an explainer page (with a not-medical-advice note) covers the rules. Rules live in `src/engine/balance.ts`; 23 recipes in `src/data/recipes/balance.ts` were written for it.
+- **Recipe library:** 333 original dinners. Nutrition, diet labels and allergens are *computed from the ingredients*, so the labels can't be wrong.
 - **Prices:** typical shelf prices for each ingredient. The US base is Walmart and the UK base is Tesco. Each store has its own price index.
 
 ## Develop

@@ -57,6 +57,41 @@ const PAGES: Record<string, { title: string; intro?: string; sections: Section[]
       },
     ],
   },
+  balance: {
+    title: 'Her Balance',
+    intro:
+      'Meals for a woman losing weight who wants every plate to support her hormones and nutrients. Each meal is checked against the rules below from its own ingredients — the 🌸 badge is never hand-picked.',
+    sections: [
+      {
+        q: '350–650 calories a serving',
+        a: 'A satisfying meal that fits a gentle calorie deficit for most women (around 1,500–1,800 a day). Slow and steady loss protects muscle, energy and your cycle.',
+      },
+      {
+        q: '25 g+ protein',
+        a: 'Protein keeps you full for longer and helps you hold on to muscle while you lose fat, which keeps your metabolism up. It matters even more in perimenopause and beyond.',
+      },
+      {
+        q: '7 g+ fiber and no more than 60 g net carbs',
+        a: 'Fiber and protein with every meal mean steadier blood sugar and insulin, fewer cravings and a healthier gut. A healthy gut also helps your body clear used estrogen.',
+      },
+      {
+        q: 'Little added sugar, no processed meat, nothing deep-fried',
+        a: 'Sugary sauces, sausages, bacon and fried food are left out. Olive oil, oily fish, nuts and avocado bring the fats your hormones are built from.',
+      },
+      {
+        q: 'Nutrients women often run short on',
+        a: 'Every meal brings at least one in a real amount: iron (lost each month), calcium (bones, especially as estrogen falls), omega-3 (mood, cycles, inflammation), leafy greens for folate and magnesium, broccoli-family veg, legumes or whole grains.',
+      },
+      {
+        q: 'Making it work',
+        a: 'Turn on Her Balance under Priorities and your weeks are planned from these meals, within your budget. Aim for a palm of protein and half a plate of veg, drink plenty of water, and keep moving — strength training helps most.',
+      },
+      {
+        q: 'Not medical advice',
+        a: 'This is general healthy-eating guidance. If you’re pregnant or breastfeeding, have PCOS, thyroid, diabetes or another condition, take medication, or have a history of disordered eating, check with your doctor or a registered dietitian first.',
+      },
+    ],
+  },
   terms: {
     title: 'Terms of use',
     sections: [

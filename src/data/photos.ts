@@ -5,6 +5,7 @@ import { LOCAL_PHOTOS } from './photoCredits';
 const BASE = 'https://www.themealdb.com/images/media/meals/';
 
 const PHOTOS: Record<string, string> = {
+  '52815': 'vwwspt1487394060.jpg', // French Lentils With Garlic and Thyme
   '52764': 'wuvryu1468232995.jpg', // Garides Saganaki
   '52765': 'qtuwxu1468233098.jpg', // Chicken Enchilada Casserole
   '52769': 'sxysrt1468240488.jpg', // Kapsalon
