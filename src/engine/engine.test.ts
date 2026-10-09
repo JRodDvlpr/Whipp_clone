@@ -7,6 +7,7 @@ import { buildList } from './groceryList';
 import { antiInflammatoryCheck } from './antiInflammatory';
 import { balanceCheck } from './balance';
 import { generateWeek, isEligible, swapOptions } from './planner';
+import { proteinCheck } from './protein';
 import { rng } from './rng';
 import { formatBuyQty, formatLineQty, formatWeight, niceNumber } from './units';
 import { ING } from '../data/ingredients';
@@ -301,6 +302,29 @@ describe('Anti-inflammatory', () => {
       const both = generateWeek({ profile: { ...anti, priorities: ['balance', 'anti_inflammatory'] }, recipes: RECIPES, seed, ctx });
       expect(both.unfilled).toEqual([]);
       for (const m of both.meals) expect(RECIPE_BY_ID[m.recipeId].tags).toEqual(expect.arrayContaining(['balance', 'anti_inflammatory']));
+    }
+  });
+});
+
+describe('High protein', () => {
+  it('tags protein-packed whole-food meals only', () => {
+    const tagged = RECIPES.filter((r) => r.tags.includes('high_protein'));
+    for (const r of tagged) {
+      expect(r.nutrition.protein, r.id).toBeGreaterThanOrEqual(40);
+      expect((r.nutrition.protein * 4) / r.nutrition.kcal, r.id).toBeGreaterThanOrEqual(0.3);
+      expect(proteinCheck(r).ok, r.id).toBe(true);
+    }
+    expect(tagged.length).toBeGreaterThanOrEqual(40);
+    expect(RECIPE_BY_ID['steak-avocado-crispy-potatoes'].tags).toContain('high_protein');
+  });
+
+  it('plans protein-packed weeks within budget', () => {
+    const p: Profile = { ...base, priorities: ['high_protein'], weeklyBudget: 120 };
+    for (let seed = 1; seed <= 15; seed++) {
+      const week = generateWeek({ profile: p, recipes: RECIPES, seed, ctx });
+      expect(week.unfilled).toEqual([]);
+      expect(week.overBudget).toBe(false);
+      for (const m of week.meals) expect(RECIPE_BY_ID[m.recipeId].tags).toContain('high_protein');
     }
   });
 });

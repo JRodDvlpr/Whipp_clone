@@ -2,6 +2,7 @@ import { ING } from '../data/ingredients';
 import { localPhoto, photoUrl } from '../data/photos';
 import { antiInflammatoryCheck } from './antiInflammatory';
 import { balanceCheck } from './balance';
+import { proteinCheck } from './protein';
 import type { Allergen, Diet, Nutrition, Priority, ProteinKind, Recipe, RecipeSource } from '../types';
 import { lineGrams } from './units';
 
@@ -75,7 +76,9 @@ export function enrich(src: RecipeSource): Recipe {
   const { diets, allergens } = classify(src);
   const tags = new Set<Priority>(src.tags);
   if (src.time <= 30) tags.add('quick');
-  if (nutrition.protein >= 30) tags.add('high_protein');
+  // "High protein" is computed, never authored: 40 g+ and 30%+ of calories from protein (engine/protein.ts).
+  tags.delete('high_protein');
+  if (proteinCheck({ ingredients: src.ingredients, serves: src.serves, nutrition }).ok) tags.add('high_protein');
   if (nutrition.carbs <= 30) tags.add('low_carb');
   if (diets.includes('vegetarian')) tags.add('plant_forward');
   const check = { ingredients: src.ingredients, serves: src.serves, nutrition };

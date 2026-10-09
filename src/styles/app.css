@@ -2672,3 +2672,22 @@ p {
 .anti .balance-icon {
   background: #e3efd2;
 }
+
+.balance-stats.three {
+  grid-template-columns: repeat(3, 1fr);
+}
+.balance-feature.protein {
+  background: linear-gradient(135deg, #fff6e8, #fde9cc);
+  border-color: #f3d3a1;
+}
+.balance-card.protein {
+  border-color: #f3d3a1;
+}
+.protein .balance-icon {
+  background: #fde9cc;
+}
+@media (min-width: 1000px) {
+  .collections {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}

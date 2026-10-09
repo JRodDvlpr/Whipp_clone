@@ -123,6 +123,33 @@ const PAGES: Record<string, { title: string; intro?: string; sections: Section[]
       },
     ],
   },
+  'high-protein': {
+    title: 'High protein',
+    intro:
+      'Protein-packed plates — a generous lean protein, a smart carb and veg, like steak with avocado and crispy potatoes. Each meal is checked against the rules below from its own ingredients; the 💪 badge is never hand-picked.',
+    sections: [
+      {
+        q: '40 g+ protein a serving',
+        a: 'Enough in one meal to really count towards building or keeping muscle (most people do well on 25–40 g a meal, more if you train hard).',
+      },
+      {
+        q: 'At least 30% of the calories from protein',
+        a: 'So it’s protein-packed, not just a big portion. Lean steak, chicken, turkey, pork loin, fish, shrimp, eggs, Greek yogurt, tofu and lentils do the work.',
+      },
+      {
+        q: 'Whole foods only',
+        a: 'No sausages, bacon or other processed meat and nothing deep-fried — the protein comes from real food.',
+      },
+      {
+        q: 'Making it work',
+        a: 'Turn on High protein under Priorities and your weeks are planned from these meals, within your budget. Pair it with Her Balance or Anti-inflammatory and you’ll get meals that are both when there are enough. Spread protein across the day and drink plenty of water.',
+      },
+      {
+        q: 'Not medical advice',
+        a: 'Very high-protein eating isn’t right for everyone — if you have kidney disease, are pregnant, or follow a medical diet, check with your doctor or a registered dietitian.',
+      },
+    ],
+  },
   terms: {
     title: 'Terms of use',
     sections: [

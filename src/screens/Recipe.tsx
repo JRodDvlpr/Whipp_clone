@@ -13,7 +13,7 @@ import { isMeal, slotOf } from '../engine/slots';
 import type { Recipe as RecipeT, RecipeLine, Slot } from '../types';
 import { Icon } from '../ui/Icon';
 import { MealImage, Sheet, Tags, recipeTags, useToast } from '../ui/primitives';
-import { AntiInflammatoryPanel, BalancePanel } from '../ui/Balance';
+import { AntiInflammatoryPanel, BalancePanel, ProteinPanel } from '../ui/Balance';
 import { SwapSheet } from './Plan';
 
 export function Recipe() {
@@ -142,6 +142,7 @@ export function Recipe() {
       </p>
       <BalancePanel recipe={recipe} />
       <AntiInflammatoryPanel recipe={recipe} />
+      <ProteinPanel recipe={recipe} />
     </>
   );
 

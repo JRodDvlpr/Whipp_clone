@@ -22,7 +22,7 @@ const filtersFor = (country: Country): Filter[] => [
   { id: 'family', label: 'Family friendly', test: (r) => r.tags.includes('family') || !!r.kid },
   { id: 'quick', label: 'Quick meal', test: (r) => r.time <= 30 },
   { id: 'light', label: 'Light', test: (r) => r.nutrition.kcal <= 550 },
-  { id: 'protein', label: 'High protein', test: (r) => r.tags.includes('high_protein') },
+  { id: 'protein', label: '💪 High protein', test: (r) => r.tags.includes('high_protein') },
   { id: 'veg', label: 'Veggie & vegan', test: (r) => r.diets.includes('vegetarian') },
   { id: 'onepan', label: 'One pan', test: (r) => !!r.extra?.includes('one_pan') },
   { id: 'cheap', label: `Under ${money(CHEAP[country], country, CHEAP[country] % 1 === 0)}`, test: (_r, pp) => pp <= CHEAP[country] },
@@ -101,6 +101,7 @@ export function Discover() {
     () => ({
       balance: RECIPES.filter((r) => r.tags.includes('balance')).length,
       anti: RECIPES.filter((r) => r.tags.includes('anti_inflammatory')).length,
+      protein: RECIPES.filter((r) => r.tags.includes('high_protein')).length,
     }),
     [],
   );
@@ -154,6 +155,16 @@ export function Discover() {
               <em>See {collectionCount.anti} meals →</em>
             </span>
           </button>
+          <button className="balance-feature protein" onClick={() => setFilter('protein')}>
+            <span className="balance-icon" aria-hidden="true">
+              💪
+            </span>
+            <span className="grow">
+              <b>High protein</b>
+              <span>Protein-packed plates like steak, avocado & crispy potatoes — 40 g+ protein, 30%+ of calories from protein.</span>
+              <em>See {collectionCount.protein} meals →</em>
+            </span>
+          </button>
         </div>
       )}
 
@@ -190,7 +201,11 @@ export function Discover() {
       </div>
       <div className="meal-list">
         {results.map((r) => (
-          <RecipeRow key={r.id} recipe={r} focus={filter === 'balance' ? 'balance' : filter === 'anti' ? 'anti_inflammatory' : undefined} />
+          <RecipeRow
+            key={r.id}
+            recipe={r}
+            focus={filter === 'balance' ? 'balance' : filter === 'anti' ? 'anti_inflammatory' : filter === 'protein' ? 'high_protein' : undefined}
+          />
         ))}
       </div>
       {!results.length && <p className="muted">Nothing matches — try another search or filter.</p>}

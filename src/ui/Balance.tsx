@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { antiInflammatoryCheck, STARS } from '../engine/antiInflammatory';
 import { balanceCheck, HIGHLIGHTS } from '../engine/balance';
+import { proteinCheck } from '../engine/protein';
+import { ING } from '../data/ingredients';
 import type { Recipe } from '../types';
 
 /** "Why it fits" card on a recipe that meets every Her Balance rule. */
@@ -90,6 +92,52 @@ export function AntiInflammatoryPanel({ recipe }: { recipe: Recipe }) {
       </ul>
       <Link to="/info/anti-inflammatory" className="balance-link">
         How we choose anti-inflammatory meals →
+      </Link>
+    </div>
+  );
+}
+
+/** "Why it's high protein" card: protein per serving, share of calories, and where it comes from. */
+export function ProteinPanel({ recipe }: { recipe: Recipe }) {
+  if (!recipe.tags.includes('high_protein')) return null;
+  const { grams, share } = proteinCheck(recipe);
+  const sources = [
+    ...new Set(
+      recipe.ingredients
+        .map((l) => ING[l[0]])
+        .filter((i) => i?.protein)
+        .map((i) => i.name),
+    ),
+  ].slice(0, 3);
+  return (
+    <div className="card balance-card protein">
+      <div className="row" style={{ gap: 12 }}>
+        <span className="balance-icon" aria-hidden="true">
+          💪
+        </span>
+        <div className="grow">
+          <b>High protein</b>
+          <div className="faint" style={{ fontSize: 14 }}>
+            Protein-packed · keeps you full and fuels muscle
+          </div>
+        </div>
+      </div>
+      <div className="balance-stats three">
+        <span>
+          <b>{grams} g</b> protein
+        </span>
+        <span>
+          <b>{Math.round(share * 100)}%</b> of calories
+        </span>
+        <span>
+          <b>{recipe.nutrition.kcal}</b> kcal
+        </span>
+      </div>
+      <p className="faint" style={{ fontSize: 14.5, margin: 0 }}>
+        From {sources.join(', ').toLowerCase()}.
+      </p>
+      <Link to="/info/high-protein" className="balance-link">
+        How we choose high-protein meals →
       </Link>
     </div>
   );

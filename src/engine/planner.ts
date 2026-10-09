@@ -14,6 +14,8 @@ export interface PlanInput {
   /** Meals to keep untouched (locked meals, or the rest of the week when swapping). */
   keep?: PlannedMeal[];
   ctx: PriceContext;
+  /** Internal: plan without narrowing to focus priorities (used when a focused week can't fit the budget). */
+  noFocus?: boolean;
 }
 
 export interface PlanResult {
@@ -56,7 +58,7 @@ function baseScore(r: Recipe, input: PlanInput, jitter: () => number): number {
 }
 
 /** Priorities that narrow the plan to meals carrying their badge, not just nudge it. */
-export const FOCUS: Priority[] = ['balance', 'anti_inflammatory'];
+export const FOCUS: Priority[] = ['balance', 'anti_inflammatory', 'high_protein'];
 
 /**
  * With a focus priority chosen (Her Balance, Anti-inflammatory), plan only from meals with its badge when they
@@ -77,7 +79,8 @@ export function focusPool(pool: Recipe[], profile: Profile, need: MealKey[], cos
       .sort((x, y) => x - y)
       .slice(0, need.length)
       .reduce((t, c) => t + c, 0);
-    return cheapest <= budget;
+    // Leave ~10% headroom: variety and repeat rules rarely land on the very cheapest picks.
+    return cheapest <= budget * 0.9;
   };
   const tries = wanted.length > 1 ? [wanted, ...wanted.map((f) => [f])] : [wanted];
   for (const tags of tries) {
@@ -120,13 +123,16 @@ export function generateWeek(input: PlanInput): PlanResult {
 
   const isKeptKey = (k: MealKey) => keep.some((m) => isMeal(m, k));
   const keptBudget = keep.reduce((t, m) => t + (byId[m.recipeId] ? recipeCost(byId[m.recipeId], m.servings, ctx, m.removed) : 0), 0);
-  const pool = focusPool(
-    recipes.filter((r) => isEligible(r, profile)),
-    profile,
-    keys.filter((k) => !isKeptKey(k)),
-    (r) => recipeCost(r, household, ctx),
-    profile.weeklyBudget - keptBudget,
-  );
+  const eligible = recipes.filter((r) => isEligible(r, profile));
+  const pool = input.noFocus
+    ? eligible
+    : focusPool(
+        eligible,
+        profile,
+        keys.filter((k) => !isKeptKey(k)),
+        (r) => recipeCost(r, household, ctx),
+        profile.weeklyBudget - keptBudget,
+      );
   const score = new Map(pool.map((r) => [r.id, baseScore(r, input, rand)]));
   const cost = new Map(pool.map((r) => [r.id, recipeCost(r, household, ctx)]));
 
@@ -190,6 +196,8 @@ export function generateWeek(input: PlanInput): PlanResult {
 
   const meals = chosen.map((c) => c.meal).sort(byDaySlot);
   const t = total();
+  // Budget is the promise: if a focused week still lands over, plan again from everything (focus still preferred).
+  if (t > profile.weeklyBudget + 0.005 && pool !== eligible) return generateWeek({ ...input, noFocus: true });
   return { meals, total: t, overBudget: t > profile.weeklyBudget + 0.005, unfilled };
 }
 

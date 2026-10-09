@@ -19,6 +19,11 @@ export const LOCAL_PHOTOS: Record<string, { file: string; artist: string; licens
   'chicken-caesar-wraps': { file: "Crispy Chick'n Caesar Wrap.jpg", artist: 'Mx. Granger', license: 'CC0' },
   'chicken-fajita-bowls': { file: 'La Casa Restaurant - 2021-07-04 - Sarah Stierch 04.jpg', artist: 'Missvain', license: 'CC BY 4.0' },
   'chicken-satay-noodles': { file: 'Shachamian.JPG', artist: 'Xmhaoyu', license: 'CC BY 3.0' },
+  'chicken-sweet-potato-broccoli': {
+    file: 'Liat Portal for Foodie Disorder - Roasted Chicken with Seasonal Vegetables.jpg',
+    artist: 'HaJunkiyada',
+    license: 'CC BY-SA 4.0',
+  },
   'chicken-tikka-masala': { file: 'Chicken Tikka Masala KellySue.JPG', artist: 'Kelly Sue', license: 'CC BY 2.0' },
   'chicken-tortilla-soup': { file: 'Tortilla soup (49461127193).jpg', artist: 'spurekar', license: 'CC BY 2.0' },
   'chipotle-chicken-lime-rice': { file: 'Lemongrass chicken rice bowl with kimchi 2.jpg', artist: 'Gary Stevens', license: 'CC BY 2.0' },
@@ -92,6 +97,11 @@ export const LOCAL_PHOTOS: Record<string, { file: string; artist: string; licens
     artist: 'Missvain',
     license: 'CC BY 4.0',
   },
+  'salmon-rice-edamame-bowl': {
+    file: 'Salmon & Tuna Poke Bowl (M) with Spicy Mayo sauce - Kitokito 2025-04-25.jpg',
+    artist: 'Andy Li',
+    license: 'CC0',
+  },
   'sausage-bean-casserole': {
     file: '-2021-12-03 Sausages, Baked Beans and Bubble and squeak, Trimingham, Norfolk.JPG',
     artist: "Kolforn (Kolforn) I'd appreciate if you could mail me (Kolforn@gmail.com) if you",
@@ -103,6 +113,16 @@ export const LOCAL_PHOTOS: Record<string, { file: string; artist: string; licens
     artist: 'Alpha',
     license: 'CC BY-SA 2.0',
   },
+  'steak-avocado-crispy-potatoes': {
+    file: 'Liat Portal for Foodie Disorder - Homemade steak with roasted potatoes.jpg',
+    artist: 'HaJunkiyada',
+    license: 'CC BY-SA 4.0',
+  },
+  'steak-eggs-sweet-potato-hash': {
+    file: 'Wagyu rump steak and eggs - Jones the Grocer, Chadstone.jpg',
+    artist: 'Alpha from Melbourne, Australia',
+    license: 'CC BY-SA 2.0',
+  },
   'sticky-gochujang-chicken': { file: 'Yangnyeom-chikin bhcChicken 1.jpg', artist: 'Jirangmoon', license: 'CC BY-SA 4.0' },
   'sweet-potato-black-bean-tacos': {
     file: 'Roasted sweet potato + black bean tacos (7784822910).jpg',
@@ -110,6 +130,7 @@ export const LOCAL_PHOTOS: Record<string, { file: string; artist: string; licens
     license: 'CC BY 2.0',
   },
   'teriyaki-tofu-bowls': { file: '7202Photos taken 2020 coronavirus pandemic Baliuag, Bulacan 12.jpg', artist: 'Judgefloro', license: 'CC0' },
+  'tofu-edamame-power-bowl': { file: 'Baked Tofu with Broccoli and Rice.jpg', artist: 'Miscellaneous contributor', license: 'CC BY-SA 4.0' },
   'tofu-katsu-curry': { file: 'Katsu-curry 002.jpg', artist: 'Ocdp', license: 'CC0' },
   'tomato-basil-rigatoni': { file: 'Penne ao molho Pomodoro e Polpetone - Spoleto.jpg', artist: 'Warley Felipe C.S.', license: 'CC BY-SA 4.0' },
   'tuna-melt-quesadillas': { file: 'Chicken quesadilla - Massachusetts.jpg', artist: 'Daderot', license: 'CC0' },

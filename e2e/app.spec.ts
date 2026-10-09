@@ -182,3 +182,14 @@ test('Anti-inflammatory collection and explainer', async ({ page }) => {
   await page.getByRole('link', { name: /How we choose anti-inflammatory meals/ }).click();
   await expect(page.getByRole('heading', { name: 'Anti-inflammatory' })).toBeVisible();
 });
+
+test('High protein collection shows protein-packed plates', async ({ page }) => {
+  await onboard(page);
+  await page.goto('/#/discover');
+  await page.getByRole('button', { name: /High protein.*See/ }).click();
+  await page.getByPlaceholder(/Search meals/).fill('steak, avocado');
+  await page.getByRole('link', { name: /Steak, Avocado & Crispy Potatoes/ }).click();
+  await expect(page.getByText('Protein-packed · keeps you full and fuels muscle')).toBeVisible();
+  await page.getByRole('link', { name: /How we choose high-protein meals/ }).click();
+  await expect(page.getByRole('heading', { name: 'High protein' })).toBeVisible();
+});
