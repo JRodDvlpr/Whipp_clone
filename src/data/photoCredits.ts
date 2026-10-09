@@ -1,11 +1,13 @@
 // Generated: dish photos from Wikimedia Commons, self-hosted in public/photos/<recipe id>.jpg.
 // Each entry keeps the original file name, author and license for attribution.
 export const LOCAL_PHOTOS: Record<string, { file: string; artist: string; license: string }> = {
+  'avocado-toast-egg': { file: 'Avocado and Egg Toast (Unsplash).jpg', artist: 'Joseph Gonzalez miracletwentyone', license: 'CC0' },
   'bbq-pulled-chicken': { file: '2015-04-06 Pulled Chicken Burger anagoria.JPG', artist: 'Anagoria', license: 'CC BY 3.0' },
   'beef-bean-burritos': { file: 'Burrito.JPG', artist: 'samuelfernandezrivera', license: 'CC0' },
   'black-bean-burrito-bowl': { file: 'Mi Pueblito El Centro - December 2022 - Sarah Stierch 05.jpg', artist: 'Missvain', license: 'CC BY 4.0' },
   'black-bean-soup': { file: 'Black bean soup (3370127734).jpg', artist: 'Geoff Peters from Vancouver, BC, Canada', license: 'CC BY 2.0' },
   'blackened-fish-tacos-mango': { file: 'Fish Tacos And Fries.jpg', artist: 'MTBanks', license: 'CC BY-SA 4.0' },
+  'breakfast-burrito': { file: 'Bacon Kale Breakfast Burrito (8429773809).jpg', artist: 'Cajsa Lilliehook from Portland', license: 'CC BY-SA 2.0' },
   'broccoli-mac-cheese': { file: 'Mac and cheese (3498405296).jpg', artist: 'Karen and Brad Emerson', license: 'CC BY 2.0' },
   'cajun-chicken-pasta': { file: 'Penne pasta with chicken at the office.jpg', artist: 'JIP', license: 'CC BY-SA 4.0' },
   'caprese-gnocchi': { file: 'Gnocchi alla sorrentina.jpg', artist: 'Davide Zambelli', license: 'CC BY 3.0' },
@@ -16,6 +18,7 @@ export const LOCAL_PHOTOS: Record<string, { file: string; artist: string; licens
     license: 'CC0',
   },
   'chana-masala': { file: 'Chana masala gravy.JPG', artist: 'Seena.ge', license: 'CC BY-SA 4.0' },
+  'chia-pudding-mango': { file: 'Chia seed pudding in a tea cup.jpg', artist: 'Miscellaneous contributor', license: 'CC0' },
   'chicken-caesar-wraps': { file: "Crispy Chick'n Caesar Wrap.jpg", artist: 'Mx. Granger', license: 'CC0' },
   'chicken-fajita-bowls': { file: 'La Casa Restaurant - 2021-07-04 - Sarah Stierch 04.jpg', artist: 'Missvain', license: 'CC BY 4.0' },
   'chicken-satay-noodles': { file: 'Shachamian.JPG', artist: 'Xmhaoyu', license: 'CC BY 3.0' },
@@ -34,6 +37,11 @@ export const LOCAL_PHOTOS: Record<string, { file: string; artist: string; licens
   },
   'fish-chips-peas': { file: 'Fish, chips and mushy peas (4by3).jpg', artist: 'Charles Haynes from Bangalore, India', license: 'CC BY-SA 2.0' },
   'greek-chicken-gyros': { file: 'Mix Gyros (Chicken & Pork) Pitta Wrap - Montague Gyros 2025-12-06.jpg', artist: 'Andy Li', license: 'CC0' },
+  'greek-yogurt-berry-parfait': {
+    file: 'Berry Parfait, Chick-fil‐A, Northern Blvd.jpg',
+    artist: 'Elyaqim Mosheh Adam אליקים משה אדם',
+    license: 'CC BY-SA 4.0',
+  },
   'halloumi-fajitas': { file: 'Grilled chicken at restaurant Wanha Mestari.jpg', artist: 'JIP', license: 'CC BY-SA 4.0' },
   'halloumi-freekeh-bowl': { file: 'Halloumi & Crispy Chickpeas Salad - No.16 2025-08-24.jpg', artist: 'Andy Li', license: 'CC0' },
   'halloumi-traybake': { file: 'Big Breakfast, Crooked Spire, Midland, 2026 (01).jpg', artist: 'Bahnfrend', license: 'CC BY-SA 4.0' },
@@ -47,6 +55,7 @@ export const LOCAL_PHOTOS: Record<string, { file: string; artist: string; licens
     artist: 'HaJunkiyada',
     license: 'CC BY-SA 4.0',
   },
+  'huevos-rancheros': { file: 'Ela huevos rancheros.jpg', artist: 'Elchavobeer', license: 'CC BY-SA 3.0' },
   'korean-beef-bowls': {
     file: 'Korean Beef Bulgogi Rice Bowl (34817154336).jpg',
     artist: 'A Healthier Michigan from Detroit, United States',
@@ -78,6 +87,12 @@ export const LOCAL_PHOTOS: Record<string, { file: string; artist: string; licens
     file: '-2020-09-14 Beef stroganoff, Trimingham.JPG',
     artist: "Kolforn (Kolforn) I'd appreciate if you could mail me (Kolforn@gmail.com) if you",
     license: 'CC BY-SA 4.0',
+  },
+  'overnight-oats-berries': { file: 'Muesli with Berries.jpg', artist: 'David Stewart', license: 'CC BY 2.0' },
+  'peanut-butter-banana-toast': {
+    file: 'Avocado Toast and Peanut Butter Toast with Strawberries and Bananas.jpg',
+    artist: 'Tony Webster',
+    license: 'CC BY 2.0',
   },
   'peanut-tofu-noodles': {
     file: 'Zucchini Spicy Peanut Sauté at Noodles and Company (45674885892).jpg',
@@ -132,11 +147,17 @@ export const LOCAL_PHOTOS: Record<string, { file: string; artist: string; licens
   'teriyaki-tofu-bowls': { file: '7202Photos taken 2020 coronavirus pandemic Baliuag, Bulacan 12.jpg', artist: 'Judgefloro', license: 'CC0' },
   'tofu-edamame-power-bowl': { file: 'Baked Tofu with Broccoli and Rice.jpg', artist: 'Miscellaneous contributor', license: 'CC BY-SA 4.0' },
   'tofu-katsu-curry': { file: 'Katsu-curry 002.jpg', artist: 'Ocdp', license: 'CC0' },
+  'tofu-scramble': { file: 'Tofu Scramble in New Orleans.jpg', artist: 'Bart Everson', license: 'CC BY 2.0' },
   'tomato-basil-rigatoni': { file: 'Penne ao molho Pomodoro e Polpetone - Spoleto.jpg', artist: 'Warley Felipe C.S.', license: 'CC BY-SA 4.0' },
   'tuna-melt-quesadillas': { file: 'Chicken quesadilla - Massachusetts.jpg', artist: 'Daderot', license: 'CC0' },
   'tuna-pasta-bake': { file: 'Baked macaroni and cheese close-up.jpg', artist: 'Scott Veg', license: 'CC BY 2.0' },
   'turkey-chili': { file: 'Chili con carne (4431800858).jpg', artist: 'cyclonebill from Copenhagen, Denmark', license: 'CC BY-SA 2.0' },
   'turkey-meatball-subs': { file: 'Vegetarian Meatball Sub (+ Fries).jpg', artist: 'Thriving Vegetarian', license: 'CC BY 2.0' },
   'turkey-taco-lettuce-cups': { file: 'Lettuce Wraps (4104199873).jpg', artist: 'Vegan Feast Catering', license: 'CC BY 2.0' },
+  'veggie-breakfast-hash': {
+    file: 'Breakfast hash at Legends Bistro (21838853126).jpg',
+    artist: 'Ruth Hartnup from Vancouver, Canada',
+    license: 'CC BY 2.0',
+  },
   'veggie-fried-rice': { file: 'Kerala vegetable fried rice 2.jpg', artist: 'Ganesh Mohan T', license: 'CC BY-SA 4.0' },
 };
