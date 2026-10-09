@@ -92,6 +92,37 @@ const PAGES: Record<string, { title: string; intro?: string; sections: Section[]
       },
     ],
   },
+  'anti-inflammatory': {
+    title: 'Anti-inflammatory',
+    intro:
+      'Mediterranean-style meals — the eating pattern with the strongest evidence for lowering long-term inflammation. Each meal is checked against the rules below from its own ingredients; the 🫒 badge is never hand-picked.',
+    sections: [
+      {
+        q: 'No red or processed meat, nothing deep-fried',
+        a: 'Sausages, bacon and other processed meats, and red meat eaten often, are linked to higher inflammation markers. Protein comes from fish, chicken, eggs, beans and lentils instead.',
+      },
+      {
+        q: 'Plants first: 150 g+ veg and 6 g+ fiber a serving',
+        a: 'Vegetables and fiber feed the gut bacteria that make anti-inflammatory short-chain fatty acids. Potatoes and herbs don’t count towards the 150 g.',
+      },
+      {
+        q: 'Easy on saturated fat, refined grains and sugar',
+        a: 'At most 30 g of cream, butter, hard cheese or coconut milk and 50 g of white pasta, rice or bread a serving, with little added sugar — the foods most tied to inflammation when eaten a lot.',
+      },
+      {
+        q: 'At least two anti-inflammatory foods',
+        a: 'Omega-3 from oily fish or walnuts, olive oil, leafy and broccoli-family greens, legumes, whole grains, colourful veg (tomatoes, peppers, sweet potato, squash), turmeric and ginger, nuts and avocado — in real amounts, not a sprinkle.',
+      },
+      {
+        q: 'Making it work',
+        a: 'Turn on Anti-inflammatory under Priorities and your weeks are planned from these meals within your budget. Pick Her Balance too and you’ll get meals that are both, when there are enough. Sleep, movement and less stress matter as much as food.',
+      },
+      {
+        q: 'Not medical advice',
+        a: 'This is general healthy-eating guidance. If you have an inflammatory or autoimmune condition, are pregnant, or take medication, talk to your doctor or a registered dietitian about what’s right for you.',
+      },
+    ],
+  },
   terms: {
     title: 'Terms of use',
     sections: [

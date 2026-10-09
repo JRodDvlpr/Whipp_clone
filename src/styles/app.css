@@ -2644,3 +2644,31 @@ p {
   background: #fde2ec;
   color: #8a2c4f;
 }
+
+.tag.olive {
+  background: #e3efd2;
+  color: #2f5a1e;
+}
+.collections {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+}
+.collections .balance-feature {
+  margin-top: 0;
+}
+@media (min-width: 700px) {
+  .collections {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.balance-feature.anti {
+  background: linear-gradient(135deg, #f2f8ea, #e3efd2);
+  border-color: #cfe3b5;
+}
+.balance-card.anti {
+  border-color: #cfe3b5;
+}
+.anti .balance-icon {
+  background: #e3efd2;
+}

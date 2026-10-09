@@ -4,6 +4,7 @@ import { ALLERGENS, DIETS, PRIORITIES } from '../data/taxonomy';
 import type { Appliance, Profile } from '../types';
 import { recipeCost, weekCost } from './cost';
 import { buildList } from './groceryList';
+import { antiInflammatoryCheck } from './antiInflammatory';
 import { balanceCheck } from './balance';
 import { generateWeek, isEligible, swapOptions } from './planner';
 import { rng } from './rng';
@@ -272,5 +273,34 @@ describe('Her Balance', () => {
     const opts = swapOptions({ profile: her, recipes: RECIPES, seed: 5, ctx, meals: week.meals, key: { day: 0, slot: 'dinner' } });
     expect(opts.length).toBeGreaterThan(0);
     for (const o of opts) expect(o.recipe.tags).toContain('balance');
+  });
+});
+
+describe('Anti-inflammatory', () => {
+  const anti: Profile = { ...base, priorities: ['anti_inflammatory'], weeklyBudget: 120 };
+
+  it('tags only meals that meet every rule, with good variety', () => {
+    const tagged = RECIPES.filter((r) => r.tags.includes('anti_inflammatory'));
+    for (const r of tagged) {
+      const c = antiInflammatoryCheck(r);
+      expect(c.ok, `${r.id}: ${c.misses.join(', ')}`).toBe(true);
+      expect(['beef', 'pork', 'lamb']).not.toContain(r.mainProtein);
+      expect(c.stars.length).toBeGreaterThanOrEqual(2);
+      expect(c.vegGrams).toBeGreaterThanOrEqual(150);
+    }
+    expect(tagged.length).toBeGreaterThanOrEqual(35);
+    expect(tagged.filter((r) => r.lunch).length).toBeGreaterThanOrEqual(14);
+    expect(tagged.filter((r) => r.diets.includes('vegan')).length).toBeGreaterThanOrEqual(7);
+  });
+
+  it('plans weeks from anti-inflammatory meals, and from meals with both badges when Her Balance is on too', () => {
+    for (let seed = 1; seed <= 15; seed++) {
+      const week = generateWeek({ profile: anti, recipes: RECIPES, seed, ctx });
+      expect(week.unfilled).toEqual([]);
+      for (const m of week.meals) expect(RECIPE_BY_ID[m.recipeId].tags).toContain('anti_inflammatory');
+      const both = generateWeek({ profile: { ...anti, priorities: ['balance', 'anti_inflammatory'] }, recipes: RECIPES, seed, ctx });
+      expect(both.unfilled).toEqual([]);
+      for (const m of both.meals) expect(RECIPE_BY_ID[m.recipeId].tags).toEqual(expect.arrayContaining(['balance', 'anti_inflammatory']));
+    }
   });
 });

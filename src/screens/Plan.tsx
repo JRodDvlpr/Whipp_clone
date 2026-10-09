@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { RECIPES, RECIPE_BY_ID } from '../data/recipes';
-import { DAY_LONG, DAY_SHORT } from '../data/taxonomy';
+import { DAY_LONG, DAY_SHORT, TAG_LABELS } from '../data/taxonomy';
 import { addWeeks, dayDate, shortDate, todayIndex, weekLabel, weekRange } from '../engine/dates';
-import { swapOptions } from '../engine/planner';
+import { FOCUS, swapOptions } from '../engine/planner';
 import { money } from '../engine/pricing';
 import { newSeed } from '../engine/rng';
 import { useIsWide, usePlanCtx, useWeekSummary } from '../state/hooks';
@@ -82,9 +82,10 @@ export function Plan() {
   const slots = SLOTS.filter((sl) => profile.meals.includes(sl) || plan?.meals.some((m) => slotOf(m) === sl));
   const labelled = slots.length > 1;
   const mealWord = profile.meals.length > 1 ? 'meals' : 'dinners';
-  // With Her Balance on, flag meals the planner had to take from outside it (budget or filters too tight).
-  const balanceShort =
-    plan && profile.priorities.includes('balance') ? plan.meals.filter((m) => !RECIPE_BY_ID[m.recipeId]?.tags.includes('balance')).length : 0;
+  // With a focus priority on (Her Balance, Anti-inflammatory), flag meals the planner had to take from outside it.
+  const focus = FOCUS.filter((f) => profile.priorities.includes(f));
+  const focusShort = plan ? plan.meals.filter((m) => focus.some((f) => !RECIPE_BY_ID[m.recipeId]?.tags.includes(f))).length : 0;
+  const focusLabel = focus.map((f) => TAG_LABELS[f]).join(' & ');
 
   return (
     <>
@@ -230,12 +231,12 @@ export function Plan() {
                 <Icon name="redo" size={19} stroke={2.4} /> Redo
               </button>
             </div>
-            {balanceShort > 0 && (
+            {focusShort > 0 && (
               <div className="notice">
-                <span aria-hidden="true">🌸</span>
+                <Icon name="alert" size={18} />
                 <span>
-                  {balanceShort} {balanceShort === 1 ? 'meal isn’t' : 'meals aren’t'} Her Balance this week — your budget or filters left too few.
-                  Raise your budget or loosen a filter, then tap Redo.
+                  {focusShort} {focusShort === 1 ? 'meal isn’t' : 'meals aren’t'} {focusLabel} this week — your budget or filters left too few. Raise
+                  your budget or loosen a filter, then tap Redo.
                 </span>
               </div>
             )}

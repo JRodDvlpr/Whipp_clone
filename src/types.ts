@@ -23,7 +23,9 @@ export type Priority =
   | 'plant_forward'
   | 'batch_cook'
   /** "Her Balance": weight-loss friendly, hormone-supportive meals (computed, see engine/balance.ts). */
-  | 'balance';
+  | 'balance'
+  /** Mediterranean-style anti-inflammatory meals (computed, see engine/antiInflammatory.ts). */
+  | 'anti_inflammatory';
 
 /** Display-only tags shown on cards in addition to priorities. */
 export type ExtraTag = 'budget' | 'one_pan' | 'veggie' | 'vegan' | 'spicy';

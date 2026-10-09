@@ -1,5 +1,5 @@
 import { ING } from '../data/ingredients';
-import type { MealKey, PlannedMeal, Profile, Recipe, Slot } from '../types';
+import type { MealKey, PlannedMeal, Priority, Profile, Recipe, Slot } from '../types';
 import { recipeCost, type PriceContext } from './cost';
 import { rng } from './rng';
 import { byDaySlot, isMeal, mealKeys, slotOf } from './slots';
@@ -55,26 +55,36 @@ function baseScore(r: Recipe, input: PlanInput, jitter: () => number): number {
   return s + jitter() * 2;
 }
 
+/** Priorities that narrow the plan to meals carrying their badge, not just nudge it. */
+export const FOCUS: Priority[] = ['balance', 'anti_inflammatory'];
+
 /**
- * With "Her Balance" chosen, plan only from Her Balance meals when they can fill the week:
- * enough of them (and enough lunch-worthy ones) after diets, dislikes and kitchen, and — when a cost
- * is given — a week of the cheapest ones still fits the budget. Otherwise use everything; the priority
- * still prefers them. Budget stays the promise.
+ * With a focus priority chosen (Her Balance, Anti-inflammatory), plan only from meals with its badge when they
+ * can fill the week: enough of them (and enough lunch-worthy ones) after diets, dislikes and kitchen, and —
+ * when a cost is given — a week of the cheapest ones still fits the budget. Both chosen: meals with both
+ * badges first, then each on its own (in FOCUS order). Otherwise use everything; the priorities still
+ * prefer them. Budget stays the promise.
  */
 export function focusPool(pool: Recipe[], profile: Profile, need: MealKey[], cost?: (r: Recipe) => number, budget = Infinity): Recipe[] {
-  if (!profile.priorities.includes('balance')) return pool;
-  const focused = pool.filter((r) => r.tags.includes('balance'));
+  const wanted = FOCUS.filter((f) => profile.priorities.includes(f));
+  if (!wanted.length) return pool;
   const lunches = need.filter((k) => k.slot === 'lunch').length;
-  if (focused.length < need.length || focused.filter((r) => r.lunch).length < lunches) return pool;
-  if (cost) {
-    const cheapest = focused
+  const fits = (rs: Recipe[]) => {
+    if (rs.length < need.length || rs.filter((r) => r.lunch).length < lunches) return false;
+    if (!cost) return true;
+    const cheapest = rs
       .map(cost)
       .sort((x, y) => x - y)
       .slice(0, need.length)
       .reduce((t, c) => t + c, 0);
-    if (cheapest > budget) return pool;
+    return cheapest <= budget;
+  };
+  const tries = wanted.length > 1 ? [wanted, ...wanted.map((f) => [f])] : [wanted];
+  for (const tags of tries) {
+    const focused = pool.filter((r) => tags.every((t) => r.tags.includes(t)));
+    if (fits(focused)) return focused;
   }
-  return focused;
+  return pool;
 }
 
 type Chosen = { key: MealKey; recipe: Recipe };

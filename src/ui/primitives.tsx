@@ -165,6 +165,7 @@ const TAG_ORDER: Priority[] = [
   'gut_friendly',
   'batch_cook',
   'plant_forward',
+  'anti_inflammatory',
   'balance',
 ];
 
@@ -175,16 +176,23 @@ export function recipeTags(recipe: Recipe, priorities: Priority[] = [], max = 2)
   else if (recipe.diets.includes('vegetarian')) out.push('veggie');
   // A diet badge already says "plant-forward".
   const prs = recipe.tags.filter((t) => !(t === 'plant_forward' && out.length));
-  const mine = (t: Priority) => (priorities.includes(t) ? 0 : 1);
+  // Earlier in `priorities` wins (a filtered collection is passed first), then the usual order.
+  const mine = (t: Priority) => (priorities.includes(t) ? priorities.indexOf(t) : priorities.length);
   prs.sort((a, b) => mine(a) - mine(b) || TAG_ORDER.indexOf(a) - TAG_ORDER.indexOf(b));
   for (const t of [...prs, ...(recipe.extra ?? [])]) if (!out.includes(t)) out.push(t);
   return out.slice(0, max);
 }
 
+/** Chips that fit on one line of a meal card (~26 characters); the first always shows. */
+const fitLine = (tags: (Priority | ExtraTag)[]) => {
+  let used = 0;
+  return tags.filter((t, i) => (used += TAG_LABELS[t].length + 3) <= 29 || i === 0);
+};
+
 export function Tags({ tags }: { tags: (Priority | ExtraTag)[] }) {
   return (
     <div className="tags">
-      {tags.map((t) => (
+      {fitLine(tags).map((t) => (
         <span key={t} className={`tag ${TAG_STYLE[t] ?? ''}`}>
           {TAG_LABELS[t]}
         </span>

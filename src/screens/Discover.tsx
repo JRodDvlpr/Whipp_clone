@@ -18,6 +18,7 @@ type Filter = { id: string; label: string; test: (r: Recipe, pp: number) => bool
 
 const filtersFor = (country: Country): Filter[] => [
   { id: 'balance', label: '🌸 Her Balance', test: (r) => r.tags.includes('balance') },
+  { id: 'anti', label: '🫒 Anti-inflammatory', test: (r) => r.tags.includes('anti_inflammatory') },
   { id: 'family', label: 'Family friendly', test: (r) => r.tags.includes('family') || !!r.kid },
   { id: 'quick', label: 'Quick meal', test: (r) => r.time <= 30 },
   { id: 'light', label: 'Light', test: (r) => r.nutrition.kcal <= 550 },
@@ -96,7 +97,13 @@ export function Discover() {
     [],
   );
   const browsing = !q && !filter && !cuisine;
-  const balanceCount = useMemo(() => RECIPES.filter((r) => r.tags.includes('balance')).length, []);
+  const collectionCount = useMemo(
+    () => ({
+      balance: RECIPES.filter((r) => r.tags.includes('balance')).length,
+      anti: RECIPES.filter((r) => r.tags.includes('anti_inflammatory')).length,
+    }),
+    [],
+  );
   const activeCuisine = CUISINES.find((c) => c.id === cuisine);
 
   return (
@@ -126,16 +133,28 @@ export function Discover() {
       </PageHead>
 
       {browsing && (
-        <button className="balance-feature" onClick={() => setFilter('balance')}>
-          <span className="balance-icon" aria-hidden="true">
-            🌸
-          </span>
-          <span className="grow">
-            <b>Her Balance</b>
-            <span>Weight-loss friendly meals that support hormones — 25 g+ protein, 7 g+ fiber, 350–650 kcal.</span>
-            <em>See {balanceCount} meals →</em>
-          </span>
-        </button>
+        <div className="collections">
+          <button className="balance-feature" onClick={() => setFilter('balance')}>
+            <span className="balance-icon" aria-hidden="true">
+              🌸
+            </span>
+            <span className="grow">
+              <b>Her Balance</b>
+              <span>Weight-loss friendly meals that support hormones — 25 g+ protein, 7 g+ fiber, 350–650 kcal.</span>
+              <em>See {collectionCount.balance} meals →</em>
+            </span>
+          </button>
+          <button className="balance-feature anti" onClick={() => setFilter('anti')}>
+            <span className="balance-icon" aria-hidden="true">
+              🫒
+            </span>
+            <span className="grow">
+              <b>Anti-inflammatory</b>
+              <span>Mediterranean-style plates — oily fish, olive oil, greens, beans and spices; no red or processed meat.</span>
+              <em>See {collectionCount.anti} meals →</em>
+            </span>
+          </button>
+        </div>
       )}
 
       {browsing && (
@@ -154,8 +173,12 @@ export function Discover() {
 
       <div className="row between section-title">
         <span className="eyebrow">{browsing ? 'All meals' : `${results.length} ${results.length === 1 ? 'meal' : 'meals'}`}</span>
-        {filter === 'balance' && (
-          <Link to="/info/balance" className="faint" style={{ fontSize: 14, textDecoration: 'underline' }}>
+        {(filter === 'balance' || filter === 'anti') && (
+          <Link
+            to={filter === 'balance' ? '/info/balance' : '/info/anti-inflammatory'}
+            className="faint"
+            style={{ fontSize: 14, textDecoration: 'underline' }}
+          >
             How we choose
           </Link>
         )}
@@ -167,7 +190,7 @@ export function Discover() {
       </div>
       <div className="meal-list">
         {results.map((r) => (
-          <RecipeRow key={r.id} recipe={r} />
+          <RecipeRow key={r.id} recipe={r} focus={filter === 'balance' ? 'balance' : filter === 'anti' ? 'anti_inflammatory' : undefined} />
         ))}
       </div>
       {!results.length && <p className="muted">Nothing matches — try another search or filter.</p>}

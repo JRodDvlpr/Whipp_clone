@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { antiInflammatoryCheck, STARS } from '../engine/antiInflammatory';
 import { balanceCheck, HIGHLIGHTS } from '../engine/balance';
 import type { Recipe } from '../types';
 
@@ -42,7 +43,53 @@ export function BalancePanel({ recipe }: { recipe: Recipe }) {
         ))}
       </ul>
       <Link to="/info/balance" className="balance-link">
-        How we choose these meals →
+        How we choose Her Balance meals →
+      </Link>
+    </div>
+  );
+}
+
+/** "Why it's anti-inflammatory" card on a recipe that meets every anti-inflammatory rule. */
+export function AntiInflammatoryPanel({ recipe }: { recipe: Recipe }) {
+  if (!recipe.tags.includes('anti_inflammatory')) return null;
+  const n = recipe.nutrition;
+  const { stars, vegGrams } = antiInflammatoryCheck(recipe);
+  return (
+    <div className="card balance-card anti">
+      <div className="row" style={{ gap: 12 }}>
+        <span className="balance-icon" aria-hidden="true">
+          🫒
+        </span>
+        <div className="grow">
+          <b>Anti-inflammatory</b>
+          <div className="faint" style={{ fontSize: 14 }}>
+            Mediterranean-style · calms inflammation
+          </div>
+        </div>
+      </div>
+      <div className="balance-stats">
+        <span>
+          <b>{vegGrams} g</b> veg
+        </span>
+        <span>
+          <b>{n.fiber} g</b> fiber
+        </span>
+        <span>
+          <b>{stars.length}</b> key foods
+        </span>
+        <span>
+          <b>0</b> red meat
+        </span>
+      </div>
+      <ul className="balance-list">
+        {stars.map((s) => (
+          <li key={s}>
+            <b>{STARS[s].label}</b> — {STARS[s].why}
+          </li>
+        ))}
+      </ul>
+      <Link to="/info/anti-inflammatory" className="balance-link">
+        How we choose anti-inflammatory meals →
       </Link>
     </div>
   );

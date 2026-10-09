@@ -1,5 +1,6 @@
 import { ING } from '../data/ingredients';
 import { localPhoto, photoUrl } from '../data/photos';
+import { antiInflammatoryCheck } from './antiInflammatory';
 import { balanceCheck } from './balance';
 import type { Allergen, Diet, Nutrition, Priority, ProteinKind, Recipe, RecipeSource } from '../types';
 import { lineGrams } from './units';
@@ -77,7 +78,9 @@ export function enrich(src: RecipeSource): Recipe {
   if (nutrition.protein >= 30) tags.add('high_protein');
   if (nutrition.carbs <= 30) tags.add('low_carb');
   if (diets.includes('vegetarian')) tags.add('plant_forward');
-  if (balanceCheck({ ingredients: src.ingredients, serves: src.serves, nutrition }).ok) tags.add('balance');
+  const check = { ingredients: src.ingredients, serves: src.serves, nutrition };
+  if (balanceCheck(check).ok) tags.add('balance');
+  if (antiInflammatoryCheck(check).ok) tags.add('anti_inflammatory');
   return {
     ...src,
     steps: src.steps.map((s) => (typeof s === 'string' ? { text: s } : s)),

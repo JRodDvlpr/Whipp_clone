@@ -166,7 +166,19 @@ test('Her Balance plans a week of qualifying meals and explains why', async ({ p
   for (let i = 0; i < 7; i++) await expect(cards.nth(i).getByText('Her Balance')).toBeVisible();
   await cards.first().locator('a').click();
   await expect(page.getByText('Weight-loss friendly · supports hormones')).toBeVisible();
-  await page.getByRole('link', { name: /How we choose these meals/ }).click();
+  await page.getByRole('link', { name: /How we choose Her Balance meals/ }).click();
   await expect(page.getByRole('heading', { name: 'Her Balance' })).toBeVisible();
   await expect(page.getByText('Not medical advice')).toBeVisible();
+});
+
+test('Anti-inflammatory collection and explainer', async ({ page }) => {
+  await onboard(page);
+  await page.goto('/#/discover');
+  await page.getByRole('button', { name: /Anti-inflammatory.*See/ }).click();
+  const first = page.locator('.meal-card').first();
+  await expect(first.getByText('Anti-inflammatory')).toBeVisible();
+  await first.click();
+  await expect(page.getByText('Mediterranean-style · calms inflammation')).toBeVisible();
+  await page.getByRole('link', { name: /How we choose anti-inflammatory meals/ }).click();
+  await expect(page.getByRole('heading', { name: 'Anti-inflammatory' })).toBeVisible();
 });
