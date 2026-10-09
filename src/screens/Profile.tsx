@@ -5,6 +5,7 @@ import { STORE_BY_ID } from '../data/stores';
 import { ALLERGENS, APPLIANCES, DAY_SHORT, DIETS, PRIORITIES } from '../data/taxonomy';
 import { money } from '../engine/pricing';
 import { reminderLabel } from '../engine/reminder';
+import { mealsLabel } from '../engine/slots';
 import { useApp } from '../state/store';
 import { Icon, type IconName } from '../ui/Icon';
 import { useToast } from '../ui/primitives';
@@ -155,7 +156,7 @@ export function Profile() {
       <div className="eyebrow section-title">Preferences</div>
       <div className="list-card rows">
         <Row to="/profile/edit/store" icon="store" label="Store" value={STORE_BY_ID[p.storeId]?.name ?? '—'} />
-        <Row to="/profile/edit/meals" icon="plateFork" label="Meals per day" value={p.meals.length > 1 ? 'Lunch & dinner' : 'Just dinner'} />
+        <Row to="/profile/edit/meals" icon="plateFork" label="Meals per day" value={mealsLabel(p.meals)} />
         <Row to="/profile/edit/days" icon="calendarDay" label="Cooking days" value={cookingDays} />
         <Row
           to="/profile/edit/budget"

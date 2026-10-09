@@ -6,7 +6,7 @@ import { recipeCost, weekCost } from './cost';
 import { buildList } from './groceryList';
 import { antiInflammatoryCheck } from './antiInflammatory';
 import { balanceCheck } from './balance';
-import { generateWeek, isEligible, swapOptions } from './planner';
+import { BREAKFAST_REPEATS, generateWeek, isEligible, swapOptions } from './planner';
 import { proteinCheck } from './protein';
 import { rng } from './rng';
 import { formatBuyQty, formatLineQty, formatWeight, niceNumber } from './units';
@@ -54,7 +54,7 @@ function randomProfile(seed: number): Profile {
     ),
     appliances: appliances.length ? appliances : ['stove'],
     days: pick([0, 1, 2, 3, 4, 5, 6], 0.85),
-    meals: r() < 0.3 ? ['lunch', 'dinner'] : ['dinner'],
+    meals: ([['dinner'], ['lunch', 'dinner'], ['breakfast', 'dinner'], ['breakfast', 'lunch', 'dinner']] as Profile['meals'][])[Math.floor(r() * 4)],
   };
 }
 
@@ -63,14 +63,21 @@ describe('planner', () => {
     for (let seed = 1; seed <= 300; seed++) {
       const profile = randomProfile(seed);
       const res = generateWeek({ profile, recipes: RECIPES, seed, ctx });
-      const ids = res.meals.map((m) => m.recipeId);
+      // Lunches and dinners never repeat; a breakfast may appear up to BREAKFAST_REPEATS times.
+      const ids = res.meals.filter((m) => m.slot !== 'breakfast').map((m) => m.recipeId);
       expect(new Set(ids).size, `seed ${seed} repeats`).toBe(ids.length);
+      const bf = res.meals.filter((m) => m.slot === 'breakfast').map((m) => m.recipeId);
+      for (const id of bf) {
+        expect(RECIPE_BY_ID[id].breakfast, `seed ${seed} breakfast slot`).toBe(true);
+        expect(bf.filter((x) => x === id).length).toBeLessThanOrEqual(BREAKFAST_REPEATS);
+      }
+      for (const m of res.meals) if (m.slot !== 'breakfast') expect(RECIPE_BY_ID[m.recipeId].breakfast, `seed ${seed} main`).toBe(false);
       for (const m of res.meals) {
         expect(isEligible(RECIPE_BY_ID[m.recipeId], profile), `seed ${seed} ${m.recipeId}`).toBe(true);
         expect(profile.days).toContain(m.day);
         expect(m.servings).toBe(profile.household);
       }
-      const eligible = RECIPES.filter((r) => isEligible(r, profile)).length;
+      const eligible = RECIPES.filter((r) => isEligible(r, profile) && !r.breakfast).length;
       const slots = profile.days.length * profile.meals.length;
       expect(res.meals.length + res.unfilled.length).toBe(slots);
       if (profile.meals.length === 1) expect(res.meals.length).toBe(Math.min(slots, eligible));
@@ -83,11 +90,18 @@ describe('planner', () => {
     for (let seed = 1; seed <= 300; seed++) {
       const profile = randomProfile(seed);
       const res = generateWeek({ profile, recipes: RECIPES, seed, ctx });
-      const cheapest = RECIPES.filter((r) => isEligible(r, profile))
+      // Cheapest possible week: cheapest mains for lunch/dinner slots plus the cheapest breakfast (it may repeat).
+      const nMains = res.meals.filter((m) => m.slot !== 'breakfast').length;
+      const nBreakfasts = res.meals.length - nMains;
+      const mainCosts = RECIPES.filter((r) => isEligible(r, profile) && !r.breakfast)
         .map((r) => recipeCost(r, profile.household, ctx))
-        .sort((a, b) => a - b)
-        .slice(0, res.meals.length)
-        .reduce((s, c) => s + c, 0);
+        .sort((a, b) => a - b);
+      const bfCosts = RECIPES.filter((r) => isEligible(r, profile) && r.breakfast)
+        .map((r) => recipeCost(r, profile.household, ctx))
+        .sort((a, b) => a - b);
+      const cheapest =
+        mainCosts.slice(0, nMains).reduce((s, c) => s + c, 0) +
+        bfCosts.slice(0, Math.ceil(nBreakfasts / BREAKFAST_REPEATS)).reduce((s, c) => s + c * BREAKFAST_REPEATS, 0);
       if (cheapest <= profile.weeklyBudget * 0.9) {
         checked++;
         expect(res.total, `seed ${seed}`).toBeLessThanOrEqual(profile.weeklyBudget + 0.01);
@@ -326,5 +340,41 @@ describe('High protein', () => {
       expect(week.overBudget).toBe(false);
       for (const m of week.meals) expect(RECIPE_BY_ID[m.recipeId].tags).toContain('high_protein');
     }
+  });
+});
+
+describe('breakfast', () => {
+  it('plans 21 meals for breakfast, lunch & dinner with breakfasts only at breakfast', () => {
+    const p: Profile = { ...base, meals: ['breakfast', 'lunch', 'dinner'], weeklyBudget: 150 };
+    for (let seed = 1; seed <= 10; seed++) {
+      const res = generateWeek({ profile: p, recipes: RECIPES, seed, ctx });
+      expect(res.meals).toHaveLength(21);
+      expect(res.overBudget).toBe(false);
+      for (const m of res.meals) expect(RECIPE_BY_ID[m.recipeId].breakfast, `${m.slot} ${m.recipeId}`).toBe(m.slot === 'breakfast');
+      const bf = res.meals.filter((m) => m.slot === 'breakfast');
+      expect(new Set(bf.map((m) => m.recipeId)).size).toBeGreaterThanOrEqual(4);
+    }
+  });
+
+  it('fills every breakfast for a vegan by repeating, and keeps a High protein focus for mains', () => {
+    const vegan = generateWeek({ profile: { ...base, diets: ['vegan'], meals: ['breakfast', 'dinner'] }, recipes: RECIPES, seed: 2, ctx });
+    expect(vegan.meals.filter((m) => m.slot === 'breakfast')).toHaveLength(
+      Math.min(7, RECIPES.filter((r) => r.breakfast && r.diets.includes('vegan')).length * BREAKFAST_REPEATS),
+    );
+    const hp = generateWeek({
+      profile: { ...base, priorities: ['high_protein'], meals: ['breakfast', 'dinner'], weeklyBudget: 140 },
+      recipes: RECIPES,
+      seed: 4,
+      ctx,
+    });
+    for (const m of hp.meals) if (m.slot === 'dinner') expect(RECIPE_BY_ID[m.recipeId].tags).toContain('high_protein');
+  });
+
+  it('swaps a breakfast only for breakfasts', () => {
+    const p: Profile = { ...base, meals: ['breakfast', 'dinner'] };
+    const week = generateWeek({ profile: p, recipes: RECIPES, seed: 9, ctx });
+    const opts = swapOptions({ profile: p, recipes: RECIPES, seed: 9, ctx, meals: week.meals, key: { day: 2, slot: 'breakfast' } });
+    expect(opts.length).toBeGreaterThan(3);
+    for (const o of opts) expect(o.recipe.breakfast).toBe(true);
   });
 });

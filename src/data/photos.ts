@@ -5,6 +5,18 @@ import { LOCAL_PHOTOS } from './photoCredits';
 const BASE = 'https://www.themealdb.com/images/media/meals/';
 
 const PHOTOS: Record<string, string> = {
+  '52855': 'sywswr1511383814.jpg', // Banana Pancakes
+  '53331': 'c400ok1764439058.jpg', // Oatmeal pancakes
+  '53076': 'hqaejl1695738653.jpg', // Bread omelette
+  '52965': '1550441882.jpg', // Breakfast Potatoes
+  '52896': 'sqrtwu1511721265.jpg', // Full English Breakfast
+  '52915': 'yvpuuy1511797244.jpg', // French Omelette
+  '52962': '1550440197.jpg', // Salmon Eggs Eggs Benedict
+  '52964': '1550441275.jpg', // Smoked Haddock Kedgeree
+  '53219': 'wpkfin1763597958.jpg', // Shakshuka Feta Cheese
+  '53569': 'pjbaq11784731571.jpg', // Creamy mango smoothie
+  '53363': 'sng9bm1765320170.jpg', // Jamaican Cornmeal Porridge
+  '53415': '927vvp1779732018.jpg', // Torrijas
   '52845': 'ypuxtw1511297463.jpg', // Turkey Meatloaf
   '52815': 'vwwspt1487394060.jpg', // French Lentils With Garlic and Thyme
   '52764': 'wuvryu1468232995.jpg', // Garides Saganaki

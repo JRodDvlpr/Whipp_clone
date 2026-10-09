@@ -84,7 +84,10 @@ export function Plan() {
   const mealWord = profile.meals.length > 1 ? 'meals' : 'dinners';
   // With a focus priority on (Her Balance, Anti-inflammatory), flag meals the planner had to take from outside it.
   const focus = FOCUS.filter((f) => profile.priorities.includes(f));
-  const focusShort = plan ? plan.meals.filter((m) => focus.some((f) => !RECIPE_BY_ID[m.recipeId]?.tags.includes(f))).length : 0;
+  // Breakfasts are narrowed on their own and often can't meet a focus (40 g protein at breakfast is a lot), so only count mains.
+  const focusShort = plan
+    ? plan.meals.filter((m) => slotOf(m) !== 'breakfast' && focus.some((f) => !RECIPE_BY_ID[m.recipeId]?.tags.includes(f))).length
+    : 0;
   const focusLabel = focus.map((f) => TAG_LABELS[f]).join(' & ');
 
   return (
@@ -274,7 +277,7 @@ export function Plan() {
                           key={slot}
                           className="empty-day"
                           onClick={() => setSwap({ key, mode: 'add' })}
-                          aria-label={`Add ${slot === 'lunch' ? 'a lunch' : 'a dinner'} on ${DAY_LONG[day]}`}
+                          aria-label={`Add a ${slot} on ${DAY_LONG[day]}`}
                         >
                           <span className="plus-tile">
                             <Icon name="plus" size={22} stroke={2.4} />
@@ -491,7 +494,7 @@ export function SwapSheet({ plan, mealKey, mode, onClose }: { plan: WeekPlan; me
                 onClose();
               }}
             >
-              <Icon name="trash" size={16} /> Skip this {slot === 'lunch' ? 'lunch' : 'night'}
+              <Icon name="trash" size={16} /> Skip this {slot === 'dinner' ? 'night' : slot}
             </button>
           </>
         )}

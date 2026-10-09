@@ -70,6 +70,17 @@ export const FOCUS: Priority[] = ['balance', 'anti_inflammatory', 'high_protein'
 export function focusPool(pool: Recipe[], profile: Profile, need: MealKey[], cost?: (r: Recipe) => number, budget = Infinity): Recipe[] {
   const wanted = FOCUS.filter((f) => profile.priorities.includes(f));
   if (!wanted.length) return pool;
+  // Breakfasts and main meals are narrowed separately, so few qualifying breakfasts never undo a focused week.
+  const parts = [
+    { recipes: pool.filter((r) => r.breakfast), keys: need.filter((k) => k.slot === 'breakfast') },
+    { recipes: pool.filter((r) => !r.breakfast), keys: need.filter((k) => k.slot !== 'breakfast') },
+  ];
+  return parts.flatMap(({ recipes, keys }) =>
+    keys.length ? narrow(recipes, keys, wanted, cost, (budget * keys.length) / Math.max(1, need.length)) : recipes,
+  );
+}
+
+function narrow(pool: Recipe[], need: MealKey[], wanted: Priority[], cost?: (r: Recipe) => number, budget = Infinity): Recipe[] {
   const lunches = need.filter((k) => k.slot === 'lunch').length;
   const fits = (rs: Recipe[]) => {
     if (rs.length < need.length || rs.filter((r) => r.lunch).length < lunches) return false;
@@ -92,9 +103,14 @@ export function focusPool(pool: Recipe[], profile: Profile, need: MealKey[], cos
 
 type Chosen = { key: MealKey; recipe: Recipe };
 
+/** How many times one breakfast may appear in a week — most people happily repeat breakfasts. */
+export const BREAKFAST_REPEATS = 3;
+
 /** How well `r` fits alongside the meals already chosen. `perDay` scales the repeat limits for lunch + dinner weeks. */
 function varietyScore(r: Recipe, key: MealKey, chosen: Chosen[], perDay = 1): number {
   let s = 0;
+  // Breakfasts and mains are compared only with their own kind.
+  chosen = chosen.filter((c) => c.recipe.breakfast === r.breakfast);
   const sameProtein = chosen.filter((c) => c.recipe.mainProtein && c.recipe.mainProtein === r.mainProtein);
   // No main protein twice in a row: same meal on neighbouring days, or lunch and dinner on the same day.
   const close = (c: Chosen) => (c.key.slot === key.slot && Math.abs(c.key.day - key.day) === 1) || (c.key.day === key.day && c.key.slot !== key.slot);
@@ -109,15 +125,16 @@ function varietyScore(r: Recipe, key: MealKey, chosen: Chosen[], perDay = 1): nu
   return s;
 }
 
-/** Lunches are drawn only from quick, lighter recipes. */
-const fitsSlot = (r: Recipe, slot: Slot) => slot === 'dinner' || r.lunch;
+/** Breakfasts fill breakfast slots only; lunches are drawn only from quick, lighter recipes. */
+export const fitsSlot = (r: Recipe, slot: Slot) => (slot === 'breakfast' ? r.breakfast : !r.breakfast && (slot === 'dinner' || r.lunch));
 
 export function generateWeek(input: PlanInput): PlanResult {
   const { profile, recipes, ctx } = input;
   const rand = rng(input.seed);
   const household = profile.household;
   const keys = mealKeys(profile.days, profile.meals?.length ? profile.meals : ['dinner']);
-  const perDay = Math.max(1, keys.length / Math.max(1, profile.days.length));
+  // Variety limits scale with lunch + dinner per day (breakfasts are compared among themselves).
+  const perDay = Math.max(1, keys.filter((k) => k.slot !== 'breakfast').length / Math.max(1, profile.days.length));
   const keep = (input.keep ?? []).filter((m) => keys.some((k) => isMeal(m, k)));
   const byId = Object.fromEntries(recipes.map((r) => [r.id, r]));
 
@@ -139,7 +156,11 @@ export function generateWeek(input: PlanInput): PlanResult {
   const chosen: (Chosen & { meal: PlannedMeal })[] = keep
     .filter((m) => byId[m.recipeId])
     .map((m) => ({ key: { day: m.day, slot: slotOf(m) }, recipe: byId[m.recipeId], meal: m }));
-  const used = new Set(chosen.map((c) => c.recipe.id));
+  // Lunches and dinners never repeat in a week; a breakfast may appear up to BREAKFAST_REPEATS times (variety still preferred).
+  const uses = new Map<string, number>();
+  for (const c of chosen) uses.set(c.recipe.id, (uses.get(c.recipe.id) ?? 0) + 1);
+  const taken = (r: Recipe) => (uses.get(r.id) ?? 0) >= (r.breakfast ? BREAKFAST_REPEATS : 1);
+  const repeatPenalty = (r: Recipe) => (r.breakfast ? 1.5 * (uses.get(r.id) ?? 0) : 0);
   const keptCost = keep.reduce((s, m) => s + (byId[m.recipeId] ? recipeCost(byId[m.recipeId], m.servings, ctx, m.removed) : 0), 0);
   const isKept = (k: MealKey) => keep.some((m) => isMeal(m, k));
 
@@ -152,10 +173,10 @@ export function generateWeek(input: PlanInput): PlanResult {
     let best: Recipe | null = null;
     let bestScore = -Infinity;
     for (const r of pool) {
-      if (used.has(r.id) || !fitsSlot(r, key.slot)) continue;
+      if (taken(r) || !fitsSlot(r, key.slot)) continue;
       const c = cost.get(r.id)!;
       const budgetFit = c > target ? (-3 * (c - target)) / Math.max(target, 1) : Math.min(0.5, (0.3 * (target - c)) / Math.max(target, 1));
-      const s = score.get(r.id)! + varietyScore(r, key, chosen, perDay) + budgetFit;
+      const s = score.get(r.id)! + varietyScore(r, key, chosen, perDay) + budgetFit - repeatPenalty(r);
       if (s > bestScore) {
         bestScore = s;
         best = r;
@@ -165,7 +186,7 @@ export function generateWeek(input: PlanInput): PlanResult {
       unfilled.push(key);
       return;
     }
-    used.add(best.id);
+    uses.set(best.id, (uses.get(best.id) ?? 0) + 1);
     remainingBudget -= cost.get(best.id)!;
     chosen.push({ key, recipe: best, meal: { day: key.day, slot: key.slot, recipeId: best.id, servings: household, removed: [] } });
   });
@@ -180,7 +201,7 @@ export function generateWeek(input: PlanInput): PlanResult {
       const others = chosen.filter((_, j) => j !== idx);
       const curScore = score.get(c.recipe.id)! + varietyScore(c.recipe, c.key, others, perDay);
       for (const r of pool) {
-        if (used.has(r.id) || !fitsSlot(r, c.key.slot)) continue;
+        if (taken(r) || !fitsSlot(r, c.key.slot)) continue;
         const saving = cur - cost.get(r.id)!;
         if (saving <= 0.01) continue;
         const metric = (curScore - (score.get(r.id)! + varietyScore(r, c.key, others, perDay))) / saving;
@@ -189,8 +210,8 @@ export function generateWeek(input: PlanInput): PlanResult {
     });
     if (!bestSwap) break;
     const { idx, r } = bestSwap as { idx: number; r: Recipe };
-    used.delete(chosen[idx].recipe.id);
-    used.add(r.id);
+    uses.set(chosen[idx].recipe.id, (uses.get(chosen[idx].recipe.id) ?? 1) - 1);
+    uses.set(r.id, (uses.get(r.id) ?? 0) + 1);
     chosen[idx] = { ...chosen[idx], recipe: r, meal: { ...chosen[idx].meal, recipeId: r.id, removed: [] } };
   }
 
@@ -221,9 +242,15 @@ export function swapOptions(input: PlanInput & { meals: PlannedMeal[]; key: Meal
   const inWeek = new Set(meals.map((m) => m.recipeId));
   const chosen = others.map((m) => ({ key: { day: m.day, slot: slotOf(m) }, recipe: byId[m.recipeId] }));
   const servings = current?.servings ?? profile.household;
-  const perDay = Math.max(1, profile.meals?.length ?? 1);
+  const perDay = Math.max(1, (profile.meals ?? []).filter((m) => m !== 'breakfast').length);
 
-  const candidates = recipes.filter((r) => !inWeek.has(r.id) && isEligible(r, profile) && fitsSlot(r, key.slot));
+  const count = (id: string) => meals.filter((m) => m.recipeId === id && !isMeal(m, key)).length;
+  const candidates = recipes.filter(
+    (r) =>
+      (r.breakfast ? count(r.id) < BREAKFAST_REPEATS && r.id !== current?.recipeId : !inWeek.has(r.id)) &&
+      isEligible(r, profile) &&
+      fitsSlot(r, key.slot),
+  );
   return focusPool(
     candidates,
     profile,

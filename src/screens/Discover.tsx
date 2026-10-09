@@ -19,6 +19,7 @@ type Filter = { id: string; label: string; test: (r: Recipe, pp: number) => bool
 const filtersFor = (country: Country): Filter[] => [
   { id: 'balance', label: '🌸 Her Balance', test: (r) => r.tags.includes('balance') },
   { id: 'anti', label: '🫒 Anti-inflammatory', test: (r) => r.tags.includes('anti_inflammatory') },
+  { id: 'breakfast', label: '🍳 Breakfast', test: (r) => r.breakfast },
   { id: 'family', label: 'Family friendly', test: (r) => r.tags.includes('family') || !!r.kid },
   { id: 'quick', label: 'Quick meal', test: (r) => r.time <= 30 },
   { id: 'light', label: 'Light', test: (r) => r.nutrition.kcal <= 550 },

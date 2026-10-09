@@ -315,6 +315,8 @@ function MealsBody() {
   const options: { value: Slot[]; emoji: string; title: string; sub: string }[] = [
     { value: ['dinner'], emoji: '🍽️', title: 'Just dinner', sub: 'One proper dinner each day' },
     { value: ['lunch', 'dinner'], emoji: '🥗', title: 'Lunch & dinner', sub: 'Quick, lighter lunches plus dinner' },
+    { value: ['breakfast', 'dinner'], emoji: '🍳', title: 'Breakfast & dinner', sub: 'Start the day right, then a proper dinner' },
+    { value: ['breakfast', 'lunch', 'dinner'], emoji: '🌞', title: 'Breakfast, lunch & dinner', sub: 'Every meal of the day, planned and costed' },
   ];
   return (
     <div className="stack">

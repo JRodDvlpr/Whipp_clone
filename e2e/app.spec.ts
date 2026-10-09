@@ -193,3 +193,16 @@ test('High protein collection shows protein-packed plates', async ({ page }) => 
   await page.getByRole('link', { name: /How we choose high-protein meals/ }).click();
   await expect(page.getByRole('heading', { name: 'High protein' })).toBeVisible();
 });
+
+test('breakfast & dinner plans 14 meals with breakfasts in the morning slot', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /Get started/ }).click();
+  for (let i = 0; i < 2; i++) await page.getByRole('button', { name: /^Continue/ }).click();
+  await page.getByRole('button', { name: /Breakfast & dinner/ }).click();
+  for (let i = 0; i < 5; i++) await page.getByRole('button', { name: /^Continue/ }).click();
+  await expect(page.locator('.plan-head')).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('.meal-card')).toHaveCount(14);
+  await expect(page.locator('.slot-label').first()).toHaveText(/breakfast/i);
+  await page.goto('/#/profile');
+  await expect(page.getByText('Breakfast & dinner')).toBeVisible();
+});

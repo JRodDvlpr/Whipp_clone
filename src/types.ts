@@ -99,6 +99,8 @@ export interface RecipeSource {
   photo?: string;
   /** Emoji + hue for the illustrated fallback card. */
   art?: { emoji: string; hue: number };
+  /** Breakfast recipes only fill breakfast slots (and never lunch or dinner). */
+  course?: 'breakfast';
 }
 
 export interface Nutrition {
@@ -123,6 +125,8 @@ export interface Recipe extends Omit<RecipeSource, 'steps' | 'tags'> {
   image?: string;
   /** Light and quick enough to offer as a lunch. */
   lunch: boolean;
+  /** A breakfast — planned only into breakfast slots. */
+  breakfast: boolean;
 }
 
 export interface Store {
@@ -138,7 +142,7 @@ export interface Store {
   home: string;
 }
 
-export type Slot = 'lunch' | 'dinner';
+export type Slot = 'breakfast' | 'lunch' | 'dinner';
 
 /** Identifies one meal in a week: a day and a slot. */
 export interface MealKey {

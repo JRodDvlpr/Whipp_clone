@@ -78,9 +78,10 @@ describe('recipes', () => {
 
   it('have steps, time and appliances', () => {
     for (const r of RECIPES) {
-      expect(r.steps.length, r.id).toBeGreaterThanOrEqual(3);
-      expect(r.time, r.id).toBeGreaterThanOrEqual(10);
-      expect(r.appliances.length, r.id).toBeGreaterThan(0);
+      // No-cook breakfasts (overnight oats, smoothies) can be short and need no appliance.
+      expect(r.steps.length, r.id).toBeGreaterThanOrEqual(r.breakfast ? 2 : 3);
+      expect(r.time, r.id).toBeGreaterThanOrEqual(r.breakfast ? 5 : 10);
+      if (!r.breakfast) expect(r.appliances.length, r.id).toBeGreaterThan(0);
       const text = r.steps.map((s) => s.text.toLowerCase()).join(' ');
       const needs = r.appliances.flat();
       if (/\bair fry/.test(text)) expect(needs, `${r.id} mentions air fryer`).toContain('air_fryer');

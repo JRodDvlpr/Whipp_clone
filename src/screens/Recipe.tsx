@@ -24,7 +24,7 @@ export function Recipe() {
   const weekParam = params.get('week');
   const dayParam = params.get('day');
   const plan = useApp((s) => (weekParam ? s.plans[weekParam] : undefined));
-  const slotParam: Slot = params.get('slot') === 'lunch' ? 'lunch' : 'dinner';
+  const slotParam: Slot = params.get('slot') === 'lunch' ? 'lunch' : params.get('slot') === 'breakfast' ? 'breakfast' : 'dinner';
   const meal =
     plan && dayParam !== null ? plan.meals.find((m) => isMeal(m, { day: Number(dayParam), slot: slotParam }) && m.recipeId === id) : undefined;
   const mealKey = meal ? { day: meal.day, slot: slotOf(meal) } : undefined;
@@ -371,13 +371,14 @@ function AddToWeekSheet({ recipe, onClose, onDone }: { recipe: RecipeT; onClose:
   const [week, setWeek] = useState(currentWeek());
   const plan = useApp((s) => s.plans[week]);
   const lunches = useApp((s) => s.profile.meals.includes('lunch'));
-  const [slot, setSlot] = useState<Slot>('dinner');
+  // Breakfasts go into breakfast slots; anything else into lunch or dinner.
+  const [slot, setSlot] = useState<Slot>(recipe.breakfast ? 'breakfast' : 'dinner');
   const setMeal = useApp((s) => s.setMeal);
   const weeks = useMemo(() => [0, 1, 2].map((n) => addWeeks(currentWeek(), n)), []);
   return (
     <Sheet open onClose={onClose} label="Add to week">
       <div className="row between">
-        <h2 className="title-lg">{lunches ? 'Add to which day?' : 'Add to which night?'}</h2>
+        <h2 className="title-lg">{lunches || recipe.breakfast ? 'Add to which day?' : 'Add to which night?'}</h2>
         <button className="icon-btn" onClick={onClose} aria-label="Close">
           <Icon name="close" size={20} />
         </button>
@@ -389,7 +390,7 @@ function AddToWeekSheet({ recipe, onClose, onDone }: { recipe: RecipeT; onClose:
           </button>
         ))}
       </div>
-      {lunches && (
+      {lunches && !recipe.breakfast && (
         <div className="segmented" style={{ margin: '4px 0 12px' }}>
           {(['lunch', 'dinner'] as const).map((sl) => (
             <button key={sl} className={slot === sl ? 'on' : ''} onClick={() => setSlot(sl)} style={{ textTransform: 'capitalize' }}>
@@ -411,13 +412,13 @@ function AddToWeekSheet({ recipe, onClose, onDone }: { recipe: RecipeT; onClose:
               className="pref-row"
               onClick={() => {
                 setMeal(week, { day: i, slot }, recipe.id);
-                onDone(`Added to ${d}${lunches ? ` ${slot}` : ''} ✓`);
+                onDone(`Added to ${d}${lunches || recipe.breakfast ? ` ${slot}` : ''} ✓`);
                 onClose();
               }}
             >
               <div className="grow">
                 <b>{d}</b>
-                <small>{r ? `Replaces ${r.title}` : slot === 'lunch' ? 'Free lunch' : 'Free night'}</small>
+                <small>{r ? `Replaces ${r.title}` : slot === 'dinner' ? 'Free night' : `Free ${slot}`}</small>
               </div>
               <Icon name={r ? 'swap' : 'plus'} size={18} />
             </button>

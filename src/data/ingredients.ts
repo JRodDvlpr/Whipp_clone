@@ -110,6 +110,7 @@ export const INGREDIENTS: CatalogIngredient[] = [
   veg('asparagus', 'Asparagus', '🌱', [20, 2.2, 3.9, 0.1, 2.1], [8.8, 'kg'], [8, 'kg']),
   veg('mango', 'Mango', '🥭', [60, 0.8, 15, 0.4, 1.6], [1, 'each'], [0.9, 'each'], { each: 200, buy: 'count' }),
   veg('pomegranate', 'Pomegranate', '🍎', [83, 1.7, 19, 1.2, 4], [2, 'each'], [1, 'each'], { each: 160, buy: 'count' }),
+  veg('banana', 'Bananas', '🍌', [89, 1.1, 23, 0.3, 2.6], [0.27, 'each'], [0.18, 'each'], { each: 120, buy: 'count' }),
   veg('pineapple', 'Pineapple', '🍍', [50, 0.5, 13, 0.1, 1.4], [2.5, 'each'], [1.2, 'each'], { each: 900, buy: 'count' }),
   veg('corn_cob', 'Corn on the Cob', '🌽', [86, 3.3, 19, 1.4, 2.4], [0.5, 'each'], [0.5, 'each'], { each: 150, buy: 'count' }),
 
@@ -143,6 +144,11 @@ export const INGREDIENTS: CatalogIngredient[] = [
   }),
   meat('salmon', 'Salmon Fillet', '🐟', [208, 20, 0, 13, 0], [21, 'kg'], [17, 'kg'], {
     each: 140,
+    animal: 'fish',
+    protein: 'fish',
+    allergens: ['fish'],
+  }),
+  meat('smoked_salmon', 'Smoked Salmon', '🐟', [117, 18, 0, 4.3, 0], [33, 'kg'], [25, 'kg'], {
     animal: 'fish',
     protein: 'fish',
     allergens: ['fish'],
@@ -218,11 +224,19 @@ export const INGREDIENTS: CatalogIngredient[] = [
   bakery('naan', 'Naan Bread', '🫓', [290, 9, 50, 6, 2], [0.9, 'each'], [0.5, 'each'], { each: 90, allergens: ['gluten', 'dairy'], animal: 'dairy' }),
   bakery('baguette', 'Crusty Bread', '🥖', [270, 9, 52, 3, 2.5], [1.5, 'each'], [0.85, 'each'], { each: 250, allergens: ['gluten'] }),
   bakery('burger_bun', 'Burger Buns', '🍞', [279, 9, 50, 4.5, 2.5], [0.35, 'each'], [0.2, 'each'], { each: 55, allergens: ['gluten'] }),
+  bakery('wholegrain_bread', 'Wholegrain Bread', '🍞', [250, 12, 41, 3.5, 7], [0.15, 'each'], [0.07, 'each'], {
+    uk: 'Wholemeal Bread',
+    each: 40,
+    countUnit: 'slice',
+    allergens: ['gluten'],
+  }),
 
   // ── Cupboard ──────────────────────────────────────────────────────────────
   cupboard('jasmine_rice', 'Jasmine Rice', '🍚', [365, 7, 80, 0.6, 1.3], [2.6, 'kg'], [2.2, 'kg'], { cup: 185 }),
   cupboard('basmati_rice', 'Basmati Rice', '🍚', [360, 8, 78, 0.9, 1.2], [3.5, 'kg'], [2.4, 'kg'], { cup: 185 }),
   cupboard('brown_rice', 'Brown Rice', '🍚', [370, 7.9, 77, 2.9, 3.5], [2.8, 'kg'], [2.2, 'kg'], { cup: 190 }),
+  cupboard('rolled_oats', 'Rolled Oats', '🥣', [379, 13, 68, 6.5, 10], [3.6, 'kg'], [1.6, 'kg'], { cup: 90, uk: 'Porridge Oats' }),
+  cupboard('chia_seeds', 'Chia Seeds', '⚫', [486, 17, 42, 31, 34], [13, 'kg'], [10, 'kg'], { density: 0.65 }),
   cupboard('arborio_rice', 'Arborio Rice', '🍚', [355, 7, 79, 0.6, 1.4], [5.5, 'kg'], [3.2, 'kg'], { uk: 'Risotto Rice', cup: 200 }),
   cupboard('spaghetti', 'Spaghetti', '🍝', [371, 13, 75, 1.5, 3.2], [2.2, 'kg'], [1.2, 'kg'], { allergens: ['gluten'] }),
   cupboard('linguine', 'Linguine', '🍝', [371, 13, 75, 1.5, 3.2], [3, 'kg'], [1.8, 'kg'], { allergens: ['gluten'] }),
@@ -328,6 +342,12 @@ export const INGREDIENTS: CatalogIngredient[] = [
     protein: 'fish',
     allergens: ['fish'],
   }),
+  cupboard('baked_beans', 'Baked Beans', '🫘', [78, 4.7, 13, 0.4, 3.8], [1, 'each'], [0.5, 'each'], {
+    each: 415,
+    buy: 'count',
+    countUnit: 'can',
+    protein: 'legume',
+  }),
   cupboard('sardines', 'Canned Sardines', '🐟', [208, 25, 0, 11, 0], [1.6, 'each'], [0.95, 'each'], {
     uk: 'Tinned Sardines',
     each: 106,
@@ -350,6 +370,7 @@ export const INGREDIENTS: CatalogIngredient[] = [
     allergens: ['fish', 'gluten'],
   }),
   frozen('edamame', 'Edamame', '🫛', [121, 12, 9, 5, 5], [6.6, 'kg'], [5, 'kg'], { allergens: ['soy'], protein: 'legume' }),
+  frozen('berries', 'Frozen Mixed Berries', '🫐', [50, 0.7, 12, 0.3, 3.5], [5.5, 'kg'], [4, 'kg'], { uk: 'Frozen Summer Berries' }),
   frozen('mixed_veg', 'Stir-Fry Vegetables', '🥦', [35, 2, 6, 0.3, 2.5], [4.4, 'kg'], [2.5, 'kg']),
 
   // ── Batch 2 additions ─────────────────────────────────────────────────────
@@ -377,6 +398,7 @@ export const INGREDIENTS: CatalogIngredient[] = [
   pantry('balsamic', 'Balsamic Vinegar', '🍶', [88, 0.5, 17, 0, 0], [10, 'l'], [6, 'l'], { density: 1.06 }),
   pantry('vinegar', 'White Wine Vinegar', '🍶', [18, 0, 0, 0, 0], [5, 'l'], [3, 'l']),
   pantry('cornstarch', 'Cornstarch', '🌽', [381, 0.3, 91, 0.1, 0.9], [4, 'kg'], [3, 'kg'], { uk: 'Cornflour', density: 0.53 }),
+  pantry('baking_powder', 'Baking Powder', '🧂', [53, 0, 28, 0, 0.2], [8, 'kg'], [6, 'kg'], { density: 0.9 }),
   pantry('flour', 'All-Purpose Flour', '🌾', [364, 10, 76, 1, 2.7], [1.1, 'kg'], [0.9, 'kg'], {
     uk: 'Plain Flour',
     density: 0.53,
